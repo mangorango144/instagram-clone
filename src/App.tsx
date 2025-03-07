@@ -1,5 +1,7 @@
+import { SignUp } from "./pages";
+
 function App() {
-  return <h1>Hello World!</h1>;
+  return <SignUp />;
 }
 
 export default App;
