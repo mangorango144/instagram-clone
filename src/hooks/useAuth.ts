@@ -5,8 +5,9 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  signInWithPopup,
   User,
+  signInWithRedirect,
+  UserCredential,
 } from "firebase/auth";
 
 export const useAuth = () => {
@@ -24,11 +25,20 @@ export const useAuth = () => {
     return () => unsubscribe(); // Clean up the listener
   }, []);
 
-  const signUp = async (email: string, password: string): Promise<void> => {
+  const signUp = async (
+    email: string,
+    password: string
+  ): Promise<UserCredential> => {
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      return userCredential;
     } catch (error: any) {
       console.error("Error signing up:", error.message);
+      throw error;
     }
   };
 
@@ -42,7 +52,7 @@ export const useAuth = () => {
 
   const signInWithGoogle = async (): Promise<void> => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      await signInWithRedirect(auth, googleProvider);
     } catch (error: any) {
       console.error("Error signing in with Google:", error.message);
     }

@@ -1,22 +1,133 @@
 import { useState } from "react";
-import { FaGoogle } from "react-icons/fa";
-import { FaRegCheckCircle } from "react-icons/fa";
+import { FaGoogle, FaRegCheckCircle } from "react-icons/fa";
+import { RxCrossCircled } from "react-icons/rx";
+import { useAuth } from "../../hooks";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "../../config/firebase";
+
+interface FormState {
+  email: string;
+  password: string;
+  fullName: string;
+  username: string;
+}
+
+interface ValidationState {
+  email: string;
+  password: string;
+  username: string;
+}
 
 export function SignUp() {
+  const { signUp, signInWithGoogle } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [form, setForm] = useState<FormState>({
+    email: "",
+    password: "",
+    fullName: "",
+    username: "",
+  });
+  const [errors, setErrors] = useState<ValidationState>({
+    email: "",
+    password: "",
+    username: "",
+  });
+
+  const validateField = async (fieldName: keyof ValidationState) => {
+    const newErrors: ValidationState = { ...errors };
+
+    if (fieldName === "email") {
+      if (!form.email) {
+        newErrors.email = "This field is required.";
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+        newErrors.email = "Enter a valid email address.";
+      } else {
+        newErrors.email = "valid";
+      }
+    }
+
+    if (fieldName === "password") {
+      if (!form.password) {
+        newErrors.password = "This field is required.";
+      } else if (form.password.length < 6) {
+        newErrors.password = "Create a password at least 6 characters long.";
+      } else {
+        newErrors.password = "valid";
+      }
+    }
+
+    if (fieldName === "username") {
+      if (!form.username) {
+        newErrors.username = "This field is required.";
+      } else if (/^\d+$/.test(form.username)) {
+        newErrors.username = "Your username cannot contain only numbers.";
+      } else if (!/^[a-zA-Z0-9._]+$/.test(form.username)) {
+        newErrors.username =
+          "Usernames can only use letters, numbers, underscores, and periods.";
+      } else {
+        newErrors.username = "valid";
+      }
+    }
+
+    setErrors(newErrors);
+    setIsFormValid(
+      !Object.values(newErrors).some(
+        (error) => error !== "valid" && error !== ""
+      )
+    );
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+    const fieldName = event.target.name as keyof ValidationState;
+    validateField(fieldName);
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const userCredential = await signUp(form.email, form.password);
+      const user = userCredential.user;
+      if (user) {
+        await setDoc(doc(db, "users", user.uid), {
+          fullName: form.fullName,
+          username: form.username,
+          email: user.email,
+          createdAt: new Date(),
+        });
+      }
+    } catch (err: any) {
+      if (err.code === "auth/email-already-in-use") {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          email: "Another account is using the same email.",
+        }));
+      } else {
+        console.log("Error signing up:", err.message);
+      }
+    }
+  };
 
   return (
     <main role="main">
-      <div className="flex flex-col items-center m-auto mt-3 px-10 border-1 border-stone-700 w-[350px] h-[710px]">
+      <div className="flex flex-col items-center m-auto mt-3 px-10 pb-6 border-1 border-stone-700 w-[350px]">
         <h1 className="mt-12 font-vibes font-extrabold text-white text-5xl">
           InstaClone
         </h1>
 
-        <h4 className="mt-4 font-medium text-stone-400 text-xs text-center leading-relaxed">
+        <p className="mt-4 font-medium text-stone-400 text-xs text-center leading-relaxed">
           Sign up to see photos and videos from your friends.
-        </h4>
+        </p>
 
-        <button className="flex justify-center items-center bg-sky-500 mt-4 py-1 rounded-lg w-full font-medium text-white">
+        <button
+          onClick={signInWithGoogle}
+          className="flex justify-center items-center bg-sky-500 hover:bg-sky-600 mt-4 py-1 rounded-lg w-full font-medium text-white hover:cursor-pointer"
+        >
           <FaGoogle className="mr-1" /> Sign in with Google
         </button>
 
@@ -26,7 +137,7 @@ export function SignUp() {
           <div className="flex-grow bg-stone-800 h-[1px]"></div>
         </div>
 
-        <form className="flex flex-col gap-y-2 mt-4 w-full">
+        <form className="flex flex-col mt-4 w-full">
           <div className="relative w-full">
             <input
               type="text"
@@ -34,18 +145,40 @@ export function SignUp() {
               placeholder="Email"
               aria-label="Email"
               aria-required="true"
-              className="bg-stone-900 p-2 pr-8 border border-stone-700 rounded-md focus:outline-none w-full text-white text-sm"
+              value={form.email}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={`bg-stone-900 p-2 border rounded-md focus:outline-none w-full text-white text-sm ${
+                errors.email && errors.email !== "valid"
+                  ? "border-red-500"
+                  : "border-stone-700"
+              }`}
             />
-            <FaRegCheckCircle className="top-1/2 right-3 absolute text-white text-xl -translate-y-1/2" />
+            {errors.email === "valid" ? (
+              <FaRegCheckCircle className="top-1/2 right-3 absolute text-emerald-600 text-xl -translate-y-1/2" />
+            ) : errors.email ? (
+              <RxCrossCircled className="top-1/2 right-3 absolute text-red-600 text-xl -translate-y-1/2" />
+            ) : null}
           </div>
-          <div className="relative w-full">
+          {errors.email && errors.email !== "valid" && (
+            <p className="my-1 text-red-500 text-xs">{errors.email}</p>
+          )}
+
+          <div className="relative mt-2 w-full">
             <input
               type={showPassword ? "text" : "password"}
               name="password"
               placeholder="Password"
               aria-label="Password"
               aria-required="true"
-              className="bg-stone-900 p-2 pr-12 border border-stone-700 rounded-md focus:outline-none w-full text-white text-sm"
+              value={form.password}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={`bg-stone-900 p-2 pr-19 border rounded-md focus:outline-none w-full text-white text-sm ${
+                errors.password && errors.password !== "valid"
+                  ? "border-red-500"
+                  : "border-stone-700"
+              }`}
             />
             <button
               type="button"
@@ -54,31 +187,60 @@ export function SignUp() {
             >
               {showPassword ? "Hide" : "Show"}
             </button>
+            {errors.password === "valid" ? (
+              <FaRegCheckCircle className="top-1/2 right-13 absolute text-emerald-600 text-xl -translate-y-1/2" />
+            ) : errors.password !== "" ? (
+              <RxCrossCircled className="top-1/2 right-13 absolute text-red-600 text-xl -translate-y-1/2" />
+            ) : null}
           </div>
-          <div className="relative w-full">
+          {errors.password && errors.password !== "valid" && (
+            <p className="my-1 text-red-500 text-xs">{errors.password}</p>
+          )}
+
+          <div className="relative mt-2 w-full">
             <input
               type="text"
               name="fullName"
               placeholder="Full Name"
+              aria-label="Full Name"
+              aria-required="false"
+              value={form.fullName}
+              onChange={handleChange}
               className="bg-stone-900 p-2 pr-8 border border-stone-700 rounded-md focus:outline-none w-full text-white text-sm"
             />
-            <FaRegCheckCircle className="top-1/2 right-3 absolute text-white text-xl -translate-y-1/2" />
           </div>
-          <div className="relative w-full">
+
+          <div className="relative mt-2 w-full">
             <input
               type="text"
               name="username"
               placeholder="Username"
-              className="bg-stone-900 p-2 pr-8 border border-stone-700 rounded-md focus:outline-none w-full text-white text-sm"
+              aria-label="Username"
+              aria-required="true"
+              value={form.username}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={`bg-stone-900 p-2 pr-12 border rounded-md focus:outline-none w-full text-white text-sm ${
+                errors.username && errors.username != "valid"
+                  ? "border-red-500"
+                  : "border-stone-700"
+              }`}
             />
-            <FaRegCheckCircle className="top-1/2 right-3 absolute text-white text-xl -translate-y-1/2" />
+            {errors.username === "valid" ? (
+              <FaRegCheckCircle className="top-1/2 right-3 absolute text-emerald-600 text-xl -translate-y-1/2" />
+            ) : errors.username ? (
+              <RxCrossCircled className="top-1/2 right-3 absolute text-red-600 text-xl -translate-y-1/2" />
+            ) : null}
           </div>
+          {errors.username && errors.username != "valid" && (
+            <p className="my-1 text-red-500 text-xs">{errors.username}</p>
+          )}
         </form>
 
-        <h4 className="mt-4 font-medium text-stone-400 text-xs text-center">
+        <p className="mt-4 font-medium text-stone-400 text-xs text-center">
           People who use our service may have uploaded your contact information
           to Instagram. Learn More
-        </h4>
+        </p>
 
         <h4 className="mt-4 font-medium text-stone-400 text-xs text-center">
           By signing up, you agree to our Terms. Learn how we collect, use and
@@ -87,16 +249,17 @@ export function SignUp() {
         </h4>
 
         <button
-          disabled
-          className="flex justify-center items-center bg-sky-500 disabled:opacity-60 mt-4 py-1 rounded-lg w-full font-medium text-white"
+          disabled={!isFormValid}
+          onClick={handleSignUp}
+          className="flex justify-center items-center bg-sky-500 hover:bg-sky-600 disabled:bg-gray-500 disabled:opacity-60 mt-4 py-1 rounded-lg w-full font-medium text-white hover:cursor-pointer disabled:cursor-not-allowed"
         >
           Next
         </button>
 
-        <h4 className="mt-8 font-medium text-stone-400 text-xs text-center">
+        <p className="mt-8 font-medium text-stone-400 text-xs text-center">
           You can also report content you believe is unlawful in your country
           without logging in.
-        </h4>
+        </p>
       </div>
 
       <div className="flex flex-col justify-center items-center m-auto mt-3 border-1 border-stone-700 w-[350px] h-[81px]">
