@@ -183,7 +183,7 @@ export function SignUp() {
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="top-1/2 right-3 absolute font-medium text-white text-sm -translate-y-1/2"
+              className="top-1/2 right-3 absolute h-full font-medium text-white hover:text-stone-500 text-sm -translate-y-1/2 hover:cursor-pointer"
             >
               {showPassword ? "Hide" : "Show"}
             </button>

@@ -1,13 +1,33 @@
 import { useState } from "react";
 import { FaGoogle } from "react-icons/fa";
-import { FaRegCheckCircle } from "react-icons/fa";
+import { useAuth } from "../../hooks";
 
 export function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState<string | null>(null);
+
+  const { signIn, signInWithGoogle } = useAuth();
+
+  const isValid = form.email.length > 0 && form.password.length > 5;
+
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const userCredential = await signIn(form.email, form.password);
+
+    if (userCredential) {
+      console.log("Login successful");
+    } else {
+      setError(
+        "Sorry, your password was incorrect. Please double-check your password."
+      );
+    }
+  };
 
   return (
     <main role="main">
-      <div className="flex flex-col items-center m-auto mt-3 px-10 border-1 border-stone-700 w-[350px] h-[490px]">
+      <div className="flex flex-col items-center m-auto mt-3 px-10 pb-6 border-1 border-stone-700 w-[350px]">
         <h1 className="mt-12 font-vibes font-extrabold text-white text-5xl">
           InstaClone
         </h1>
@@ -20,6 +40,10 @@ export function Login() {
               placeholder="Username or email"
               aria-label="Email"
               aria-required="true"
+              onChange={(e) => {
+                setForm({ ...form, email: e.target.value });
+                setError(null);
+              }}
               className="bg-stone-900 p-2 pr-8 border border-stone-700 rounded-md focus:outline-none w-full text-white text-sm"
             />
           </div>
@@ -31,24 +55,29 @@ export function Login() {
               placeholder="Password"
               aria-label="Password"
               aria-required="true"
+              onChange={(e) => {
+                setForm({ ...form, password: e.target.value });
+                setError(null);
+              }}
               className="bg-stone-900 p-2 pr-12 border border-stone-700 rounded-md focus:outline-none w-full text-white text-sm"
             />
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="top-1/2 right-3 absolute font-medium text-white text-sm -translate-y-1/2"
+              className="top-1/2 right-3 absolute h-full font-medium text-white hover:text-stone-500 text-sm -translate-y-1/2 hover:cursor-pointer"
             >
               {showPassword ? "Hide" : "Show"}
             </button>
           </div>
-        </form>
 
-        <button
-          disabled
-          className="flex justify-center items-center bg-sky-500 disabled:opacity-60 mt-4 py-1 rounded-lg w-full font-medium text-white"
-        >
-          Log in
-        </button>
+          <button
+            disabled={!isValid}
+            onClick={handleSignIn}
+            className="flex justify-center items-center bg-sky-500 hover:bg-sky-600 disabled:opacity-60 mt-2 py-1 rounded-lg w-full font-medium text-white hover:cursor-pointer"
+          >
+            Log in
+          </button>
+        </form>
 
         <div className="flex justify-center items-center mt-4 w-full">
           <div className="flex-grow bg-stone-800 h-[1px]"></div>
@@ -56,11 +85,18 @@ export function Login() {
           <div className="flex-grow bg-stone-800 h-[1px]"></div>
         </div>
 
-        <button className="flex justify-center items-center bg-sky-500 mt-4 py-1 rounded-lg w-full font-medium text-white">
+        <button
+          onClick={signInWithGoogle}
+          className="flex justify-center items-center bg-sky-500 hover:bg-sky-600 mt-4 py-1 rounded-lg w-full font-medium text-white hover:cursor-pointer"
+        >
           <FaGoogle className="mr-1" /> Log in with Google
         </button>
 
-        <h4 className="mt-8 text-white text-xs text-center">
+        {error && (
+          <p className="mt-6 text-red-500 text-sm text-center">{error}</p>
+        )}
+
+        <h4 className="mt-6 text-white text-xs text-center">
           Forgot password?
         </h4>
 

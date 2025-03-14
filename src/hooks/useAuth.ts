@@ -42,11 +42,20 @@ export const useAuth = () => {
     }
   };
 
-  const signIn = async (email: string, password: string): Promise<void> => {
+  const signIn = async (
+    email: string,
+    password: string
+  ): Promise<UserCredential | null> => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      return userCredential;
     } catch (error: any) {
       console.error("Error signing in:", error.message);
+      return null;
     }
   };
 
