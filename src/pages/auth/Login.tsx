@@ -7,7 +7,7 @@ import { RootState, setAuthUser } from "../../store";
 
 export function Login() {
   // State for handling form fields and validation
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ identifier: "", password: "" });
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -21,12 +21,12 @@ export function Login() {
   const { signIn, signInWithGoogle } = useAuth();
 
   // Form validity
-  const isValid = form.email.length > 0 && form.password.length > 5;
+  const isValid = form.identifier.length > 0 && form.password.length > 5;
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const userCredential = await signIn(form.email, form.password);
+    const userCredential = await signIn(form.identifier, form.password);
 
     if (userCredential) {
       dispatch(setAuthUser({ uid: userCredential.user.uid }));
@@ -57,7 +57,7 @@ export function Login() {
               aria-label="Email"
               aria-required="true"
               onChange={(e) => {
-                setForm({ ...form, email: e.target.value });
+                setForm({ ...form, identifier: e.target.value });
                 setError(null);
               }}
               className="bg-stone-900 p-2 pr-8 border border-stone-700 rounded-md focus:outline-none w-full text-white text-sm"
