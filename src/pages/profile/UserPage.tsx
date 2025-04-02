@@ -1,11 +1,49 @@
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "../../config";
+import { FirestoreUser } from "../../types";
 import { SlOptions } from "react-icons/sl";
 import { IoMdGrid } from "react-icons/io";
 import { GrTag } from "react-icons/gr";
 import { CiCamera } from "react-icons/ci";
 
 export function UserPage() {
+  const { username } = useParams<{ username: string }>();
+  const [user, setUser] = useState<FirestoreUser | null>(null);
+  const [loading, setLoading] = useState(true);
+
   // const posts: number[] = [];
   const posts: number[] = [1, 2, 3, 4, 5, 6, 7, 8];
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!username) return;
+      setLoading(true);
+
+      try {
+        // Firestore query: Find the user by username
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("username", "==", username));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          setUser(querySnapshot.docs[0].data() as FirestoreUser);
+        } else {
+          setUser(null); // No user found
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+
+      setLoading(false);
+    };
+
+    fetchUser();
+  }, [username]);
+
+  if (loading) return <p className="text-white">Loading...</p>;
+  if (!user) return <p className="text-white">User not found</p>;
 
   return (
     <div className="m-auto mt-8 sm:px-0 w-full max-w-[935px]">
@@ -16,7 +54,7 @@ export function UserPage() {
         </div>
 
         <div className="flex items-center">
-          <p className="mr-5 text-white text-xl">username</p>
+          <p className="mr-5 text-white text-xl">{user.username}</p>
           <button className="bg-sky-500 hover:bg-sky-600 px-5 py-1.5 rounded-lg font-medium text-white text-sm hover:cursor-pointer">
             Follow
           </button>
@@ -36,8 +74,8 @@ export function UserPage() {
         </div>
 
         <div className="flex flex-col mt-2">
-          <p className="font-medium text-white text-sm">Full Name</p>
-          <p className="text-white text-sm">This is the bio.</p>
+          <p className="font-medium text-white text-sm">{user.fullName}</p>
+          <p className="text-white text-sm">Email: {user.email}</p>
         </div>
       </div>
 
@@ -47,7 +85,7 @@ export function UserPage() {
           <div className="bg-stone-500 rounded-full w-[77px] h-[77px]"></div>
           <div className="flex flex-col flex-grow justify-center">
             <div className="flex items-center">
-              <p className="text-white text-xl">username</p>
+              <p className="text-white text-xl">{user.username}</p>
               <SlOptions className="ml-3 text-white text-xl hover:cursor-pointer" />
             </div>
             <button className="bg-sky-500 hover:bg-sky-600 mt-2 px-5 py-1.5 rounded-lg font-medium text-white text-sm hover:cursor-pointer">
@@ -57,8 +95,8 @@ export function UserPage() {
         </div>
 
         <div className="mt-3 px-4">
-          <p className="font-medium text-white text-sm">Full Name</p>
-          <p className="text-white text-sm">This is the bio.</p>
+          <p className="font-medium text-white text-sm">{user.fullName}</p>
+          <p className="text-white text-sm">Email: {user.email}</p>
         </div>
 
         <div className="flex justify-center gap-5 mt-3 py-5 border-stone-800 border-t-[1px] text-stone-400">

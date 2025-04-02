@@ -4,6 +4,9 @@ import { RxCrossCircled } from "react-icons/rx";
 import { useAuth } from "../../hooks";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../../config/firebase";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
+import { Navigate, useLocation } from "react-router-dom";
 
 interface FormState {
   email: string;
@@ -18,21 +21,30 @@ interface ValidationState {
   username: string;
 }
 
+const initializeFormState = () => ({
+  email: "",
+  password: "",
+  fullName: "",
+  username: "",
+});
+
+const initializeValidationState = () => ({
+  email: "",
+  password: "",
+  username: "",
+});
+
 export function SignUp() {
   const { signUp, signInWithGoogle } = useAuth();
+  const auth = useSelector((state: RootState) => state.auth);
+  const location = useLocation();
+
   const [showPassword, setShowPassword] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
-  const [form, setForm] = useState<FormState>({
-    email: "",
-    password: "",
-    fullName: "",
-    username: "",
-  });
-  const [errors, setErrors] = useState<ValidationState>({
-    email: "",
-    password: "",
-    username: "",
-  });
+
+  // prettier-ignore
+  const [errors, setErrors] = useState<ValidationState>(initializeValidationState());
+  const [form, setForm] = useState<FormState>(initializeFormState());
 
   const validateField = async (fieldName: keyof ValidationState) => {
     const newErrors: ValidationState = { ...errors };
@@ -112,6 +124,10 @@ export function SignUp() {
       }
     }
   };
+
+  if (auth.uid) {
+    return <Navigate to="/" replace state={{ from: location }} />;
+  }
 
   return (
     <main role="main">

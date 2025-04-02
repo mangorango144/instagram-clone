@@ -1,14 +1,26 @@
 import { useState } from "react";
-import { FaGoogle } from "react-icons/fa";
 import { useAuth } from "../../hooks";
+import { FaGoogle } from "react-icons/fa";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, setAuthUser } from "../../store";
 
 export function Login() {
-  const [showPassword, setShowPassword] = useState(false);
+  // State for handling form fields and validation
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
+  // State and hooks for navigation and dispatch
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const auth = useSelector((state: RootState) => state.auth);
+  const location = useLocation();
+
+  // Auth functions
   const { signIn, signInWithGoogle } = useAuth();
 
+  // Form validity
   const isValid = form.email.length > 0 && form.password.length > 5;
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -17,13 +29,17 @@ export function Login() {
     const userCredential = await signIn(form.email, form.password);
 
     if (userCredential) {
+      dispatch(setAuthUser({ uid: userCredential.user.uid }));
+      navigate("/");
       console.log("Login successful");
     } else {
-      setError(
-        "Sorry, your password was incorrect. Please double-check your password."
-      );
+      setError("Sorry, your password was incorrect.");
     }
   };
+
+  if (auth.uid) {
+    return <Navigate to="/" replace state={{ from: location }} />;
+  }
 
   return (
     <main role="main">
