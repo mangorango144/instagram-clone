@@ -6,7 +6,7 @@ import { doc, setDoc } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
-import { Navigate, useLocation } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 
 interface FormState {
   email: string;
@@ -280,9 +280,9 @@ export function SignUp() {
 
       <div className="flex flex-col justify-center items-center m-auto mt-3 border-1 border-stone-700 w-[350px] h-[81px]">
         <p className="block text-white">Have an account?</p>
-        <a href="" className="text-sky-400">
+        <Link to="/login" className="text-sky-400">
           Log in
-        </a>
+        </Link>
       </div>
 
       <div className="m-auto mt-3 w-[350px] h-[95px]">

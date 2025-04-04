@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../hooks";
 import { FaGoogle } from "react-icons/fa";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, setAuthUser } from "../../store";
 
@@ -124,9 +124,9 @@ export function Login() {
 
       <div className="flex flex-col justify-center items-center m-auto mt-3 border-1 border-stone-700 w-[350px] h-[81px]">
         <p className="block text-white">Don't have an account?</p>
-        <a href="" className="text-sky-400">
+        <Link to="/signup" className="text-sky-400">
           Sign up
-        </a>
+        </Link>
       </div>
 
       <div className="m-auto mt-3 w-[350px] h-[95px]">
