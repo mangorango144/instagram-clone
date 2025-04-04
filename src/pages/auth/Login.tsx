@@ -89,7 +89,7 @@ export function Login() {
           <button
             disabled={!isValid}
             onClick={handleSignIn}
-            className="flex justify-center items-center bg-sky-500 hover:bg-sky-600 disabled:opacity-60 mt-2 py-1 rounded-lg w-full font-medium text-white hover:cursor-pointer"
+            className="flex justify-center items-center bg-sky-500 hover:bg-sky-600 disabled:bg-sky-500 disabled:opacity-60 mt-2 py-1 rounded-lg w-full font-medium text-white hover:cursor-pointer disabled:cursor-not-allowed"
           >
             Log in
           </button>
