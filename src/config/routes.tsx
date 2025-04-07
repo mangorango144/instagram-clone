@@ -1,5 +1,5 @@
 import { HomePage, Login, SignUp, UserPage } from "../pages";
-import { AuthGuard } from "../components";
+import { AuthGuard, Layout } from "../components";
 
 export const routesConfig = [
   {
@@ -11,15 +11,17 @@ export const routesConfig = [
     element: <SignUp />,
   },
   {
+    path: "/:username",
+    element: <Layout />,
+    children: [{ index: true, element: <UserPage /> }],
+  },
+  {
     path: "/",
     element: (
       <AuthGuard>
-        <HomePage />
+        <Layout />
       </AuthGuard>
     ),
-  },
-  {
-    path: "/:username",
-    element: <UserPage />,
+    children: [{ index: true, element: <HomePage /> }],
   },
 ];
