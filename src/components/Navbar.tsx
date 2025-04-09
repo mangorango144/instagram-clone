@@ -4,8 +4,8 @@ import { SlMagnifier } from "react-icons/sl";
 import { GrWaypoint } from "react-icons/gr";
 import { FaRegHeart } from "react-icons/fa";
 import { FiPlusSquare } from "react-icons/fi";
-import { CgDetailsMore } from "react-icons/cg";
 import { Link } from "react-router-dom";
+import { MoreMenu } from "./MoreMenu";
 
 const navClassName = `
   md:block md:top-0 bottom-0 left-0 fixed flex bg-black 
@@ -84,10 +84,7 @@ export function Navbar() {
           </ul>
         </div>
 
-        <div className="hidden xl:flex justify-start md:items-center md:hover:bg-stone-800 m-4 p-3 hover:cursor-pointer">
-          <CgDetailsMore className="xl:mr-4 text-3xl" />
-          More
-        </div>
+        <MoreMenu />
       </div>
     </nav>
   );
