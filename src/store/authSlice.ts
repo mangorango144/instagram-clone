@@ -4,6 +4,7 @@ import storage from "redux-persist/lib/storage";
 
 const initialState: AuthUser = {
   uid: undefined,
+  username: undefined,
 };
 
 const userSlice = createSlice({
@@ -12,13 +13,15 @@ const userSlice = createSlice({
   reducers: {
     setAuthUser: (state, action: PayloadAction<AuthUser>) => {
       state.uid = action.payload.uid;
-      console.log("setAuthUser()", state.uid);
+      state.username = action.payload.username;
+      console.log("setAuthUser() " + state.uid + " " + state.username);
     },
     logOutAuth: (state) => {
-      console.log("logOutAuth() start", state.uid);
+      console.log("logOutAuth() start " + state.uid + " " + state.username);
       state.uid = undefined;
+      state.username = undefined;
       storage.removeItem("persist:auth");
-      console.log("logOutAuth() end", state.uid);
+      console.log("logOutAuth() end " + state.uid + " " + state.username);
     },
   },
 });

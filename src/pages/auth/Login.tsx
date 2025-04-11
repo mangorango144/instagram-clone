@@ -4,6 +4,7 @@ import { FaGoogle } from "react-icons/fa";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, setAuthUser } from "../../store";
+import { getUsernameByUid } from "../../utils";
 
 export function Login() {
   // State for handling form fields and validation
@@ -29,7 +30,10 @@ export function Login() {
     const userCredential = await signIn(form.identifier, form.password);
 
     if (userCredential) {
-      dispatch(setAuthUser({ uid: userCredential.user.uid }));
+      const uid = userCredential.user.uid;
+      const username = await getUsernameByUid(uid);
+
+      dispatch(setAuthUser({ uid, username }));
       navigate("/");
       console.log("Login successful");
     } else {

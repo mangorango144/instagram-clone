@@ -1,6 +1,7 @@
 // Represents the authenticated user from Firebase Auth
 export interface AuthUser {
   uid: string | undefined;
+  username: string | undefined;
 }
 
 // Represents a user profile stored in Firestore

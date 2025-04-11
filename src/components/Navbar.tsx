@@ -6,6 +6,8 @@ import { FaRegHeart } from "react-icons/fa";
 import { FiPlusSquare } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { MoreMenu } from "./MoreMenu";
+import { useSelector } from "react-redux";
+import { RootState } from "../store";
 
 const navClassName = `
   md:block md:top-0 bottom-0 left-0 fixed flex bg-black 
@@ -27,27 +29,29 @@ const ulClassName = `
 
 const iconClassName = "xl:mr-4 text-2xl";
 
-const navItems = [
-  {
-    label: "Home",
-    icon: <GrHomeRounded className={iconClassName} />,
-    to: "/",
-  },
-  { label: "Search", icon: <SlMagnifier className={iconClassName} /> },
-  { label: "Messages", icon: <GrWaypoint className={iconClassName} /> },
-  { label: "Notifications", icon: <FaRegHeart className={iconClassName} /> },
-  { label: "Create", icon: <FiPlusSquare className={iconClassName} /> },
-  {
-    label: "Profile",
-    icon: (
-      <div className="bg-stone-500 xl:mr-4 rounded-full outline-2 w-6 h-6" />
-    ),
-    to: "/johndoe",
-    extraClasses: "font-bold",
-  },
-];
-
 export function Navbar() {
+  const username = useSelector((state: RootState) => state.auth.username);
+
+  const navItems = [
+    {
+      label: "Home",
+      icon: <GrHomeRounded className={iconClassName} />,
+      to: "/",
+    },
+    { label: "Search", icon: <SlMagnifier className={iconClassName} /> },
+    { label: "Messages", icon: <GrWaypoint className={iconClassName} /> },
+    { label: "Notifications", icon: <FaRegHeart className={iconClassName} /> },
+    { label: "Create", icon: <FiPlusSquare className={iconClassName} /> },
+    {
+      label: "Profile",
+      icon: (
+        <div className="bg-stone-500 xl:mr-4 rounded-full outline-2 w-6 h-6" />
+      ),
+      to: `/${username}`,
+      extraClasses: "font-bold",
+    },
+  ];
+
   return (
     <nav className={navClassName}>
       <div className="flex flex-col justify-between w-full h-full">
