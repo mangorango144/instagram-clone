@@ -4,7 +4,7 @@ import { SlMagnifier } from "react-icons/sl";
 import { GrWaypoint } from "react-icons/gr";
 import { FaRegHeart } from "react-icons/fa";
 import { FiPlusSquare } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { MoreMenu } from "./MoreMenu";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
@@ -31,6 +31,9 @@ const iconClassName = "xl:mr-4 text-2xl";
 
 export function Navbar() {
   const username = useSelector((state: RootState) => state.auth.username);
+  const location = useLocation();
+
+  const isOwnProfile = location.pathname === `/${username}`;
 
   const navItems = [
     {
@@ -45,7 +48,10 @@ export function Navbar() {
     {
       label: "Profile",
       icon: (
-        <div className="bg-stone-500 xl:mr-4 rounded-full outline-2 w-6 h-6" />
+        <div
+          className={`bg-stone-500 xl:mr-4 rounded-full w-6 h-6 
+            ${isOwnProfile ? "outline-2" : ""}`}
+        />
       ),
       to: `/${username}`,
       extraClasses: "font-bold",
