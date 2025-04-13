@@ -13,7 +13,10 @@ export const routesConfig = [
   {
     path: "/:username",
     element: <Layout />,
-    children: [{ index: true, element: <UserPage /> }],
+    children: [
+      { index: true, element: <UserPage /> },
+      { path: "tagged", element: <UserPage /> },
+    ],
   },
   {
     path: "/",

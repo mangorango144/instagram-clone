@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../../config";
 import { FirestoreUser } from "../../types";
@@ -10,11 +10,18 @@ import { CiCamera } from "react-icons/ci";
 
 export function UserPage() {
   const { username } = useParams<{ username: string }>();
+
   const [user, setUser] = useState<FirestoreUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // const posts: number[] = [];
+  const location = useLocation();
+  const isTagged = location.pathname.endsWith("/tagged");
+
+  // Mock data
   const posts: number[] = [1, 2, 3, 4, 5, 6, 7, 8];
+  const tagged: number[] = [1, 2, 3, 4];
+
+  const contentToShow = isTagged ? tagged : posts;
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -114,20 +121,34 @@ export function UserPage() {
 
       {/* Tabs Section */}
       <div className="flex justify-between md:justify-center md:gap-[60px] md:mt-8 border-stone-800 border-t-[1px] h-[53px]">
-        <div className="flex justify-center items-center w-full md:w-auto h-full font-medium text-stone-400 text-xs uppercase tracking-widest">
+        <Link
+          to={`/${username}`}
+          className={`flex justify-center items-center w-full md:w-auto h-full font-medium text-xs uppercase tracking-widest ${
+            isTagged
+              ? "text-stone-400"
+              : "text-white border-t-[1px] border-white"
+          }`}
+        >
           <IoMdGrid className="mr-1.5 md:text-base text-3xl" />
           <span className="hidden md:inline">Posts</span>
-        </div>
-        <div className="flex justify-center items-center w-full md:w-auto h-full font-medium text-stone-400 text-xs uppercase tracking-widest">
+        </Link>
+        <Link
+          to={`/${username}/tagged`}
+          className={`flex justify-center items-center w-full md:w-auto h-full font-medium text-xs uppercase tracking-widest ${
+            isTagged
+              ? "text-white border-t-[1px] border-white"
+              : "text-stone-400"
+          }`}
+        >
           <GrTag className="mr-1.5 md:text-sm text-2xl" />
           <span className="hidden md:inline">Tagged</span>
-        </div>
+        </Link>
       </div>
 
       {/* Posts Section */}
-      {posts.length ? (
+      {contentToShow.length ? (
         <div className="gap-[3px] md:gap-[5px] grid grid-cols-3">
-          {posts.map((post) => (
+          {contentToShow.map((post) => (
             <div className="bg-stone-500 aspect-square">{post}</div>
           ))}
         </div>

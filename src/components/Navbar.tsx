@@ -33,7 +33,8 @@ export function Navbar() {
   const username = useSelector((state: RootState) => state.auth.username);
   const location = useLocation();
 
-  const isOwnProfile = location.pathname === `/${username}`;
+  const segments = location.pathname.split("/");
+  const isOwnProfile = segments[1] === username;
 
   const navItems = [
     {
