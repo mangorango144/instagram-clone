@@ -1,30 +1,45 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../../config";
 import { FirestoreUser } from "../../types";
 import { SlOptions } from "react-icons/sl";
 import { IoMdGrid } from "react-icons/io";
+import { FaRegBookmark } from "react-icons/fa";
 import { GrTag } from "react-icons/gr";
 import { CiCamera } from "react-icons/ci";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
 
 export function UserPage() {
   const { username } = useParams<{ username: string }>();
 
+  const navigate = useNavigate();
+
   const [user, setUser] = useState<FirestoreUser | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const authUserName = useSelector((state: RootState) => state.auth.username);
   const location = useLocation();
+  const segments = location.pathname.split("/");
+  const isOwnProfile = segments[1] === authUserName;
+
   const isTagged = location.pathname.endsWith("/tagged");
+  const isSaved = location.pathname.endsWith("/saved");
 
   // Mock data
   const posts: number[] = [1, 2, 3, 4, 5, 6, 7, 8];
   const tagged: number[] = [1, 2, 3, 4];
+  const saved: number[] = [1, 2];
 
-  const contentToShow = isTagged ? tagged : posts;
+  const contentToShow = isTagged ? tagged : isSaved ? saved : posts;
 
   useEffect(() => {
     const fetchUser = async () => {
+      if (isSaved && !isOwnProfile) {
+        navigate(`/${username}`, { replace: true });
+      }
+
       if (!username) return;
       setLoading(true);
 
@@ -124,14 +139,27 @@ export function UserPage() {
         <Link
           to={`/${username}`}
           className={`flex justify-center items-center w-full md:w-auto h-full font-medium text-xs uppercase tracking-widest ${
-            isTagged
-              ? "text-stone-400"
-              : "text-white border-t-[1px] border-white"
+            !isTagged && !isSaved
+              ? "text-white border-t-[1px] border-white"
+              : "text-stone-400"
           }`}
         >
           <IoMdGrid className="mr-1.5 md:text-base text-3xl" />
           <span className="hidden md:inline">Posts</span>
         </Link>
+        {isOwnProfile && (
+          <Link
+            to={`/${username}/saved`}
+            className={`flex justify-center items-center w-full md:w-auto h-full font-medium text-xs uppercase tracking-widest ${
+              isSaved
+                ? "text-white border-t-[1px] border-white"
+                : "text-stone-400"
+            }`}
+          >
+            <FaRegBookmark className="mr-1.5 md:text-sm text-2xl" />
+            <span className="hidden md:inline">Saved</span>
+          </Link>
+        )}
         <Link
           to={`/${username}/tagged`}
           className={`flex justify-center items-center w-full md:w-auto h-full font-medium text-xs uppercase tracking-widest ${

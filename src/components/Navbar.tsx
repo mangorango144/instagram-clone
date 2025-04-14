@@ -31,8 +31,8 @@ const iconClassName = "xl:mr-4 text-2xl";
 
 export function Navbar() {
   const username = useSelector((state: RootState) => state.auth.username);
-  const location = useLocation();
 
+  const location = useLocation();
   const segments = location.pathname.split("/");
   const isOwnProfile = segments[1] === username;
 

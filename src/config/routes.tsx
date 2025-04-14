@@ -16,6 +16,7 @@ export const routesConfig = [
     children: [
       { index: true, element: <UserPage /> },
       { path: "tagged", element: <UserPage /> },
+      { path: "saved", element: <UserPage /> },
     ],
   },
   {
