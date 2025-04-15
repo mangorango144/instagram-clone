@@ -4,6 +4,7 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../../config";
 import { FirestoreUser } from "../../types";
 import { SlOptions } from "react-icons/sl";
+import { BsGearWide } from "react-icons/bs";
 import { IoMdGrid } from "react-icons/io";
 import { FaRegBookmark } from "react-icons/fa";
 import { GrTag } from "react-icons/gr";
@@ -77,10 +78,24 @@ export function UserPage() {
 
         <div className="flex items-center">
           <p className="mr-5 text-white text-xl">{user.username}</p>
-          <button className="bg-sky-500 hover:bg-sky-600 px-5 py-1.5 rounded-lg font-medium text-white text-sm hover:cursor-pointer">
-            Follow
-          </button>
-          <SlOptions className="ml-3 h-full text-white text-xl hover:cursor-pointer" />
+          {isOwnProfile ? (
+            <>
+              <button className="bg-neutral-700 hover:bg-neutral-800 px-5 py-1.5 rounded-lg font-medium text-white text-sm hover:cursor-pointer">
+                Edit profile
+              </button>
+              <button className="bg-neutral-700 hover:bg-neutral-800 ml-2 px-5 py-1.5 rounded-lg font-medium text-white text-sm hover:cursor-pointer">
+                View archive
+              </button>
+              <BsGearWide className="ml-3 h-full text-white text-2xl hover:cursor-pointer" />
+            </>
+          ) : (
+            <>
+              <button className="bg-sky-500 hover:bg-sky-600 px-5 py-1.5 rounded-lg font-medium text-white text-sm hover:cursor-pointer">
+                Follow
+              </button>
+              <SlOptions className="ml-3 h-full text-white text-xl hover:cursor-pointer" />
+            </>
+          )}
         </div>
 
         <div className="flex items-center gap-9 mt-4 text-stone-400">
@@ -105,14 +120,26 @@ export function UserPage() {
       <div className="md:hidden flex flex-col mt-8">
         <div className="flex gap-6 px-4 w-full">
           <div className="bg-stone-500 rounded-full w-[77px] h-[77px]"></div>
-          <div className="flex flex-col flex-grow justify-center">
+          <div className="flex flex-col justify-center">
             <div className="flex items-center">
               <p className="text-white text-xl">{user.username}</p>
-              <SlOptions className="ml-3 text-white text-xl hover:cursor-pointer" />
+              <BsGearWide className="ml-3 text-white text-xl hover:cursor-pointer" />
             </div>
-            <button className="bg-sky-500 hover:bg-sky-600 mt-2 px-5 py-1.5 rounded-lg font-medium text-white text-sm hover:cursor-pointer">
-              Follow
-            </button>
+
+            {isOwnProfile ? (
+              <div className="flex gap-2">
+                <button className="bg-neutral-700 hover:bg-neutral-800 mt-2 px-4 py-1.5 rounded-lg font-medium text-white text-sm hover:cursor-pointer">
+                  Edit Profile
+                </button>
+                <button className="bg-neutral-700 hover:bg-neutral-800 mt-2 px-4 py-1.5 rounded-lg font-medium text-white text-sm hover:cursor-pointer">
+                  View archive
+                </button>
+              </div>
+            ) : (
+              <button className="bg-sky-500 hover:bg-sky-600 mt-2 px-5 py-1.5 rounded-lg w-[224px] font-medium text-white text-sm hover:cursor-pointer">
+                Follow
+              </button>
+            )}
           </div>
         </div>
 
