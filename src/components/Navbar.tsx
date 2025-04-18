@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import { FaInstagram } from "react-icons/fa";
 import { GrHomeRounded } from "react-icons/gr";
 import { SlMagnifier } from "react-icons/sl";
@@ -8,6 +9,7 @@ import { Link, useLocation } from "react-router-dom";
 import { MoreMenu } from "./MoreMenu";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
+import { SearchPanel } from "./SearchPanel";
 
 const navClassName = `
   md:block md:top-0 bottom-0 left-0 fixed flex bg-black 
@@ -18,7 +20,7 @@ const navClassName = `
 
 const navbarLogoClass = `
   hidden lg:flex md:justify-center xl:justify-start items-center 
-  xl:px-8 py-10 font-vibes font-extrabold text-4xl
+  py-10 font-vibes font-extrabold text-4xl
 `;
 
 const ulClassName = `
@@ -36,13 +38,26 @@ export function Navbar() {
   const segments = location.pathname.split("/");
   const isOwnProfile = segments[1] === username;
 
+  const searchToggleRef = useRef<HTMLLIElement>(null);
+
+  const [activePanel, setActivePanel] = useState<null | "search">(null);
+  const isPanelOpen = activePanel !== null;
+
   const navItems = [
     {
       label: "Home",
       icon: <GrHomeRounded className={iconClassName} />,
       to: "/",
     },
-    { label: "Search", icon: <SlMagnifier className={iconClassName} /> },
+    {
+      label: "Search",
+      icon: <SlMagnifier className={iconClassName} />,
+      ref: searchToggleRef,
+      onClick: (e: React.MouseEvent<HTMLLIElement>) => {
+        e.stopPropagation();
+        setActivePanel((prev) => (prev === "search" ? null : "search"));
+      },
+    },
     { label: "Messages", icon: <GrWaypoint className={iconClassName} /> },
     { label: "Notifications", icon: <FaRegHeart className={iconClassName} /> },
     { label: "Create", icon: <FiPlusSquare className={iconClassName} /> },
@@ -64,39 +79,61 @@ export function Navbar() {
       <div className="flex flex-col justify-between w-full h-full">
         <div>
           <Link to="/" className={navbarLogoClass}>
-            <FaInstagram className="xl:hidden inline hover:cursor-pointer" />
-            <span className="hidden xl:inline hover:cursor-pointer">
+            <FaInstagram
+              className={`xl:ml-6.5 inline h-10 hover:cursor-pointer ${
+                isPanelOpen ? "xl:inline" : "xl:hidden"
+              }`}
+            />
+            <span
+              className={`xl:px-8 hover:cursor-pointer hidden ${
+                isPanelOpen ? "xl:hidden" : "xl:inline"
+              }`}
+            >
               InstaClone
             </span>
           </Link>
 
           <ul className={ulClassName}>
-            {navItems.map(({ label, icon, to, extraClasses = "" }, index) => {
-              const classes = `flex justify-center xl:justify-start items-center md:hover:bg-stone-800 p-3 w-full hover:cursor-pointer ${extraClasses}`;
-              const content = (
-                <>
-                  {icon}
-                  <span className={`hidden xl:inline ${extraClasses}`}>
-                    {label}
-                  </span>
-                </>
-              );
+            {navItems.map(
+              ({ label, icon, to, ref, onClick, extraClasses = "" }, index) => {
+                const classes = `flex justify-center xl:justify-start items-center md:hover:bg-stone-800 p-3 w-full hover:cursor-pointer ${extraClasses}`;
+                const content = (
+                  <>
+                    {icon}
+                    <span className={`hidden xl:inline ${extraClasses}`}>
+                      {label}
+                    </span>
+                  </>
+                );
 
-              return to ? (
-                <Link key={index} to={to} className={classes}>
-                  {content}
-                </Link>
-              ) : (
-                <li key={index} className={classes}>
-                  {content}
-                </li>
-              );
-            })}
+                return to ? (
+                  <Link key={index} to={to} className={classes}>
+                    {content}
+                  </Link>
+                ) : (
+                  <li
+                    key={index}
+                    className={classes}
+                    ref={ref}
+                    onClick={onClick}
+                  >
+                    {content}
+                  </li>
+                );
+              }
+            )}
           </ul>
         </div>
 
         <MoreMenu />
       </div>
+
+      {activePanel === "search" && (
+        <SearchPanel
+          onClose={() => setActivePanel(null)}
+          toggleRef={searchToggleRef as React.RefObject<HTMLElement>}
+        />
+      )}
     </nav>
   );
 }

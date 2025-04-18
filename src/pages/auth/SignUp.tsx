@@ -7,6 +7,7 @@ import { db } from "../../config/firebase";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 import { Link, Navigate, useLocation } from "react-router-dom";
+import { generateSearchKeywords } from "../../utils";
 
 interface FormState {
   email: string;
@@ -105,12 +106,19 @@ export function SignUp() {
     try {
       const userCredential = await signUp(form.email, form.password);
       const user = userCredential.user;
+
       if (user) {
+        const searchKeywords = generateSearchKeywords(
+          form.fullName,
+          form.username
+        );
+
         await setDoc(doc(db, "users", user.uid), {
           fullName: form.fullName,
           username: form.username,
           email: user.email,
           createdAt: new Date(),
+          searchKeywords,
         });
       }
     } catch (err: any) {
