@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "../../config";
 import { FirestoreUser } from "../../types";
 import { SlOptions } from "react-icons/sl";
 import { BsGearWide } from "react-icons/bs";
@@ -11,29 +9,59 @@ import { GrTag } from "react-icons/gr";
 import { CiCamera } from "react-icons/ci";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
+import {
+  followUser,
+  getFollowers,
+  getFollowing,
+  unfollowUser,
+} from "../../utils";
+import { UserListModal } from "../../components";
+import { db } from "../../config";
+import { collection, getDocs, query, where } from "firebase/firestore";
 
 export function UserPage() {
+  // Router
   const { username } = useParams<{ username: string }>();
-
+  const location = useLocation();
   const navigate = useNavigate();
 
-  const [user, setUser] = useState<FirestoreUser | null>(null);
-  const [loading, setLoading] = useState(true);
-
+  // Redux
   const authUserName = useSelector((state: RootState) => state.auth.username);
-  const location = useLocation();
-  const segments = location.pathname.split("/");
-  const isOwnProfile = segments[1] === authUserName;
+  const authUserId = useSelector((state: RootState) => state.auth.uid);
 
+  // Route flags
+  const isOwnProfile = location.pathname.split("/")[1] === authUserName;
   const isTagged = location.pathname.endsWith("/tagged");
   const isSaved = location.pathname.endsWith("/saved");
 
-  // Mock data
-  const posts: number[] = [1, 2, 3, 4, 5, 6, 7, 8];
-  const tagged: number[] = [1, 2, 3, 4];
-  const saved: number[] = [1, 2];
-
+  // Mock content
+  const posts = [1, 2, 3, 4, 5, 6, 7, 8];
+  const tagged = [1, 2, 3, 4];
+  const saved = [1, 2];
   const contentToShow = isTagged ? tagged : isSaved ? saved : posts;
+
+  // State
+  const [user, setUser] = useState<FirestoreUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followers, setFollowers] = useState<FirestoreUser[]>([]);
+  const [following, setFollowing] = useState<FirestoreUser[]>([]);
+  const [modalType, setModalType] = useState<"followers" | "following" | null>(
+    null
+  );
+  const [authUserFollowings, setAuthUserFollowings] = useState<
+    Map<string, FirestoreUser>
+  >(new Map());
+
+  const fetchFollowersAndFollowing = async (uid: string) => {
+    const [followerUsers, followingUsers] = await Promise.all([
+      getFollowers(uid),
+      getFollowing(uid),
+    ]);
+
+    setFollowers(followerUsers);
+    setFollowing(followingUsers);
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -51,9 +79,22 @@ export function UserPage() {
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-          setUser(querySnapshot.docs[0].data() as FirestoreUser);
+          const doc = querySnapshot.docs[0];
+          const fetchedUser = { uid: doc.id, ...doc.data() } as FirestoreUser;
+
+          setUser(fetchedUser);
+
+          const authFollowings = await getFollowing(authUserId as string);
+          const authFollowingsMap = new Map(
+            authFollowings.map((user) => [user.uid, user])
+          );
+
+          setAuthUserFollowings(authFollowingsMap);
+          setIsFollowing(authFollowingsMap.has(fetchedUser.uid));
+
+          await fetchFollowersAndFollowing(fetchedUser.uid);
         } else {
-          setUser(null); // No user found
+          setUser(null);
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -64,6 +105,24 @@ export function UserPage() {
 
     fetchUser();
   }, [username]);
+
+  const handleFollowToggle = async () => {
+    if (!authUserId || !user) return;
+
+    try {
+      if (isFollowing) {
+        await unfollowUser(authUserId, user.uid);
+        setIsFollowing(false);
+      } else {
+        await followUser(authUserId, user.uid);
+        setIsFollowing(true);
+      }
+
+      await fetchFollowersAndFollowing(user.uid);
+    } catch (error) {
+      console.error("Failed to toggle follow:", error);
+    }
+  };
 
   if (loading) return <p className="text-white">Loading...</p>;
   if (!user) return <p className="text-white">User not found</p>;
@@ -90,8 +149,15 @@ export function UserPage() {
             </>
           ) : (
             <>
-              <button className="bg-sky-500 hover:bg-sky-600 px-5 py-1.5 rounded-lg font-medium text-white text-sm hover:cursor-pointer">
-                Follow
+              <button
+                onClick={handleFollowToggle}
+                className={`${
+                  isFollowing
+                    ? "bg-neutral-700 hover:bg-neutral-800"
+                    : "bg-sky-500 hover:bg-sky-600"
+                } px-5 py-1.5 rounded-lg font-medium text-white text-sm hover:cursor-pointer`}
+              >
+                {isFollowing ? "Unfollow" : "Follow"}
               </button>
               <SlOptions className="ml-3 h-full text-white text-xl hover:cursor-pointer" />
             </>
@@ -100,13 +166,22 @@ export function UserPage() {
 
         <div className="flex items-center gap-9 mt-4 text-stone-400">
           <p>
-            <span className="font-semibold text-white">100</span> posts
+            <span className="font-semibold text-white">{posts.length}</span>{" "}
+            posts
           </p>
-          <p>
-            <span className="font-semibold text-white">101</span> followers
+          <p
+            onClick={() => setModalType("followers")}
+            className="hover:opacity-60 hover:cursor-pointer"
+          >
+            <span className="font-semibold text-white">{followers.length}</span>{" "}
+            followers
           </p>
-          <p>
-            <span className="font-semibold text-white">102</span> following
+          <p
+            onClick={() => setModalType("following")}
+            className="hover:opacity-60 hover:cursor-pointer"
+          >
+            <span className="font-semibold text-white">{following.length}</span>{" "}
+            following
           </p>
         </div>
 
@@ -136,8 +211,15 @@ export function UserPage() {
                 </button>
               </div>
             ) : (
-              <button className="bg-sky-500 hover:bg-sky-600 mt-2 px-5 py-1.5 rounded-lg w-[224px] font-medium text-white text-sm hover:cursor-pointer">
-                Follow
+              <button
+                onClick={handleFollowToggle}
+                className={`${
+                  isFollowing
+                    ? "bg-neutral-700 hover:bg-neutral-800"
+                    : "bg-sky-500 hover:bg-sky-600"
+                } mt-2 px-5 py-1.5 rounded-lg w-[224px] font-medium text-white text-sm hover:cursor-pointer`}
+              >
+                {isFollowing ? "Unfollow" : "Follow"}
               </button>
             )}
           </div>
@@ -150,13 +232,22 @@ export function UserPage() {
 
         <div className="flex justify-center gap-5 mt-3 py-5 border-stone-800 border-t-[1px] text-stone-400">
           <p>
-            <span className="font-semibold text-white">100</span> posts
+            <span className="font-semibold text-white">{posts.length}</span>{" "}
+            posts
           </p>
-          <p>
-            <span className="font-semibold text-white">101</span> followers
+          <p
+            onClick={() => setModalType("followers")}
+            className="hover:cursor-pointer"
+          >
+            <span className="font-semibold text-white">{followers.length}</span>{" "}
+            followers
           </p>
-          <p>
-            <span className="font-semibold text-white">102</span> following
+          <p
+            onClick={() => setModalType("following")}
+            className="hover:cursor-pointer"
+          >
+            <span className="font-semibold text-white">{following.length}</span>{" "}
+            following
           </p>
         </div>
       </div>
@@ -203,8 +294,10 @@ export function UserPage() {
       {/* Posts Section */}
       {contentToShow.length ? (
         <div className="gap-[3px] md:gap-[5px] grid grid-cols-3">
-          {contentToShow.map((post) => (
-            <div className="bg-stone-500 aspect-square">{post}</div>
+          {contentToShow.map((post, index) => (
+            <div className="bg-stone-500 aspect-square" key={index}>
+              {post}
+            </div>
           ))}
         </div>
       ) : (
@@ -216,6 +309,18 @@ export function UserPage() {
             <p className="my-4 font-extrabold text-3xl">No Posts Yet</p>
           </div>
         </div>
+      )}
+
+      {modalType && (
+        <UserListModal
+          title={modalType === "followers" ? "Followers" : "Following"}
+          users={modalType === "followers" ? followers : following}
+          authUserFollowings={authUserFollowings}
+          setAuthUserFollowings={setAuthUserFollowings}
+          currentUserPage={user as FirestoreUser}
+          fetchFollowersAndFollowing={fetchFollowersAndFollowing}
+          onClose={() => setModalType(null)}
+        />
       )}
     </div>
   );
