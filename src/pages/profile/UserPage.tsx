@@ -84,13 +84,16 @@ export function UserPage() {
 
           setUser(fetchedUser);
 
-          const authFollowings = await getFollowing(authUserId as string);
-          const authFollowingsMap = new Map(
-            authFollowings.map((user) => [user.uid, user])
-          );
+          // Only fetch auth user's followings if authenticated
+          if (authUserId) {
+            const authFollowings = await getFollowing(authUserId);
+            const authFollowingsMap = new Map(
+              authFollowings.map((user) => [user.uid, user])
+            );
 
-          setAuthUserFollowings(authFollowingsMap);
-          setIsFollowing(authFollowingsMap.has(fetchedUser.uid));
+            setAuthUserFollowings(authFollowingsMap);
+            setIsFollowing(authFollowingsMap.has(fetchedUser.uid));
+          }
 
           await fetchFollowersAndFollowing(fetchedUser.uid);
         } else {
