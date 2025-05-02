@@ -9,19 +9,24 @@ interface CreatePanelProps {
 }
 
 export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
+  // Refs
   const modalRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [mediaFile, setMediaFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [showDiscardModal, setShowDiscardModal] = useState(false);
-
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const draggableImageRef = useRef<HTMLImageElement>(null);
 
+  // Media State
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // UI State
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
+
+  // Drag Position State
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [dragging, setDragging] = useState(false);
+  const [isDraggingImage, setIsImageDragging] = useState(false);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -60,7 +65,7 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (dragging) {
+      if (isDraggingImage) {
         const newX = e.clientX - startPos.x;
         const newY = e.clientY - startPos.y;
 
@@ -69,10 +74,10 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
     };
 
     const handleMouseUp = () => {
-      setDragging(false);
+      setIsImageDragging(false);
     };
 
-    if (dragging) {
+    if (isDraggingImage) {
       window.addEventListener("mousemove", handleMouseMove);
       window.addEventListener("mouseup", handleMouseUp);
     } else {
@@ -84,11 +89,11 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [dragging, startPos]);
+  }, [isDraggingImage, startPos]);
 
   useEffect(() => {
     const handleTouchMove = (e: TouchEvent) => {
-      if (dragging) {
+      if (isDraggingImage) {
         const touch = e.touches[0];
         const newX = touch.clientX - startPos.x;
         const newY = touch.clientY - startPos.y;
@@ -97,10 +102,10 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
     };
 
     const handleTouchEnd = () => {
-      setDragging(false);
+      setIsImageDragging(false);
     };
 
-    if (dragging) {
+    if (isDraggingImage) {
       window.addEventListener("touchmove", handleTouchMove);
       window.addEventListener("touchend", handleTouchEnd);
     }
@@ -109,7 +114,7 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [dragging, startPos]);
+  }, [isDraggingImage, startPos]);
 
   const isValidMediaFile = (file: File) => {
     return file.type.startsWith("image/") || file.type.startsWith("video/");
@@ -136,7 +141,7 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setIsDragging(false);
+    setIsDraggingFile(false);
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
 
@@ -155,11 +160,11 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setIsDragging(true);
+    setIsDraggingFile(true);
   };
 
   const handleDragLeave = () => {
-    setIsDragging(false);
+    setIsDraggingFile(false);
   };
 
   const handleCloseAttempt = () => {
@@ -176,7 +181,7 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    setDragging(true);
+    setIsImageDragging(true);
     setStartPos({ x: e.clientX - offset.x, y: e.clientY - offset.y });
   };
 
@@ -205,7 +210,7 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
         {/* Media section */}
         <div
           className={`flex flex-col flex-grow justify-center items-center space-y-4 text-white ${
-            isDragging ? "border-1 border-sky-500" : ""
+            isDraggingFile ? "border-1 border-sky-500" : ""
           }`}
         >
           {errorMessage ? (
@@ -233,7 +238,7 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
                 onMouseDown={handleMouseDown}
                 onTouchStart={(e) => {
                   const touch = e.touches[0];
-                  setDragging(true);
+                  setIsImageDragging(true);
                   setStartPos({
                     x: touch.clientX - offset.x,
                     y: touch.clientY - offset.y,
