@@ -133,7 +133,7 @@ export function UserPage() {
   return (
     <div className="m-auto mt-8 md:px-0 w-full max-w-[935px]">
       {/* Desktop Layout */}
-      <div className="hidden md:grid grid-cols-[284px_auto] h-[195px]">
+      <div className="hidden md:grid grid-cols-[200px_auto] lg:grid-cols-[284px_auto] h-[195px]">
         <div className="flex justify-center items-center row-span-4">
           <div className="bg-stone-500 rounded-full w-[150px] h-[150px]"></div>
         </div>

@@ -116,10 +116,10 @@ export function UserListModal({
   };
 
   return (
-    <div className="z-50 fixed inset-0 flex justify-center items-start lg:items-center bg-black/80 pt-5 overflow-y-auto custom-scrollbar">
+    <div className="z-50 fixed inset-0 flex justify-center items-start bg-black/80 py-5 overflow-y-auto custom-scrollbar">
       <div
         ref={modalRef}
-        className="flex flex-col bg-neutral-800 rounded-xl w-[300px] sm:w-[400px] h-[400px] text-white"
+        className="flex flex-col bg-neutral-800 my-auto rounded-xl w-[300px] sm:w-[400px] h-[400px] text-white"
       >
         {/* Modal Header */}
         <div className="relative flex justify-center items-center py-3 border-neutral-700 border-b">

@@ -10,6 +10,7 @@ import { MoreMenu } from "./MoreMenu";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
 import { SearchPanel } from "./SearchPanel";
+import { CreatePanel } from "./CreatePanel";
 
 const navClassName = `
   md:block md:top-0 bottom-0 left-0 fixed flex bg-black 
@@ -39,9 +40,12 @@ export function Navbar() {
   const isOwnProfile = segments[1] === username;
 
   const searchToggleRef = useRef<HTMLLIElement>(null);
+  const createToggleRef = useRef<HTMLLIElement>(null);
 
-  const [activePanel, setActivePanel] = useState<null | "search">(null);
-  const isPanelOpen = activePanel !== null;
+  const [activePanel, setActivePanel] = useState<null | "search" | "create">(
+    null
+  );
+  const isPanelOpen = activePanel !== null && activePanel !== "create";
 
   const navItems = [
     {
@@ -60,7 +64,15 @@ export function Navbar() {
     },
     { label: "Messages", icon: <GrWaypoint className={iconClassName} /> },
     { label: "Notifications", icon: <FaRegHeart className={iconClassName} /> },
-    { label: "Create", icon: <FiPlusSquare className={iconClassName} /> },
+    {
+      label: "Create",
+      icon: <FiPlusSquare className={iconClassName} />,
+      ref: createToggleRef,
+      onClick: (e: React.MouseEvent<HTMLLIElement>) => {
+        e.stopPropagation();
+        setActivePanel((prev) => (prev === "create" ? null : "create"));
+      },
+    },
     {
       label: "Profile",
       icon: (
@@ -132,6 +144,13 @@ export function Navbar() {
         <SearchPanel
           onClose={() => setActivePanel(null)}
           toggleRef={searchToggleRef as React.RefObject<HTMLElement>}
+        />
+      )}
+
+      {activePanel === "create" && (
+        <CreatePanel
+          onClose={() => setActivePanel(null)}
+          toggleRef={createToggleRef as React.RefObject<HTMLElement>}
         />
       )}
     </nav>
