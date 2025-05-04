@@ -14,6 +14,8 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const draggableImageRef = useRef<HTMLImageElement>(null);
+  const offsetRef = useRef({ x: 0, y: 0 });
+  const startPosRef = useRef({ x: 0, y: 0 });
 
   // Media State
   const [mediaFile, setMediaFile] = useState<File | null>(null);
@@ -25,9 +27,18 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
   const [showDiscardModal, setShowDiscardModal] = useState(false);
 
   // Drag Position State
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isDraggingImage, setIsImageDragging] = useState(false);
-  const [startPos, setStartPos] = useState({ x: 0, y: 0 });
+  const [dragDirection, setDragDirection] = useState<
+    "horizontal" | "vertical" | "none"
+  >("none");
+  const [imageDimensions, setImageDimensions] = useState({
+    width: 0,
+    height: 0,
+  });
+  const [containerDimensions, setContainerDimensions] = useState({
+    width: 0,
+    height: 0,
+  });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -64,57 +75,131 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
   }, [mediaFile, toggleRef]);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isDraggingImage) {
-        const newX = e.clientX - startPos.x;
-        const newY = e.clientY - startPos.y;
+    const clamp = (value: number, min: number, max: number) =>
+      Math.min(Math.max(value, min), max);
 
-        setOffset({ x: newX, y: newY });
+    const handleMove = (clientX: number, clientY: number) => {
+      if (!isDraggingImage) return;
+
+      let newOffsetX = clientX - startPosRef.current.x;
+      let newOffsetY = clientY - startPosRef.current.y;
+
+      const extraWidth = imageDimensions.width - containerDimensions.width;
+      const extraHeight = imageDimensions.height - containerDimensions.height;
+
+      const maxOffsetX = extraWidth;
+      const maxOffsetY = extraHeight;
+
+      if (dragDirection === "horizontal") {
+        newOffsetY = 0;
+        const clampedX = clamp(newOffsetX, -maxOffsetX, 0);
+        if (newOffsetX !== clampedX) {
+          startPosRef.current = {
+            x: clientX - clampedX,
+            y: startPosRef.current.y,
+          };
+        }
+        newOffsetX = clampedX;
+      } else if (dragDirection === "vertical") {
+        newOffsetX = 0;
+        const clampedY = clamp(newOffsetY, -maxOffsetY, 0);
+        if (newOffsetY !== clampedY) {
+          startPosRef.current = {
+            x: startPosRef.current.x,
+            y: clientY - clampedY,
+          };
+        }
+        newOffsetY = clampedY;
+      } else {
+        newOffsetX = 0;
+        newOffsetY = 0;
+      }
+
+      offsetRef.current = { x: newOffsetX, y: newOffsetY };
+
+      if (draggableImageRef.current) {
+        draggableImageRef.current.style.transform = `translate(${newOffsetX}px, ${newOffsetY}px)`;
       }
     };
 
-    const handleMouseUp = () => {
+    const handleMouseMove = (e: MouseEvent) => {
+      handleMove(e.clientX, e.clientY);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      handleMove(touch.clientX, touch.clientY);
+    };
+
+    const stopDragging = () => {
       setIsImageDragging(false);
     };
 
     if (isDraggingImage) {
       window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", handleMouseUp);
-    } else {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+      window.addEventListener("touchmove", handleTouchMove, { passive: false });
+      window.addEventListener("mouseup", stopDragging);
+      window.addEventListener("touchend", stopDragging);
     }
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("mouseup", stopDragging);
+      window.removeEventListener("touchend", stopDragging);
     };
-  }, [isDraggingImage, startPos]);
+  }, [isDraggingImage, dragDirection, imageDimensions, containerDimensions]);
 
+  // Determine drag direction based on image dimensions
   useEffect(() => {
-    const handleTouchMove = (e: TouchEvent) => {
-      if (isDraggingImage) {
-        const touch = e.touches[0];
-        const newX = touch.clientX - startPos.x;
-        const newY = touch.clientY - startPos.y;
-        setOffset({ x: newX, y: newY });
+    if (!previewUrl) return;
+
+    const img = new Image();
+    img.src = previewUrl;
+
+    img.onload = () => {
+      if (img.naturalWidth > img.naturalHeight) {
+        setDragDirection("horizontal");
+      } else if (img.naturalHeight > img.naturalWidth) {
+        setDragDirection("vertical");
+      } else {
+        setDragDirection("none");
       }
     };
+  }, [previewUrl]);
 
-    const handleTouchEnd = () => {
-      setIsImageDragging(false);
-    };
+  // Handle image load to set dimensions
+  const handleImageLoad = () => {
+    const image = draggableImageRef.current!;
+    const container = previewContainerRef.current!;
+    const { naturalWidth, naturalHeight } = image;
 
-    if (isDraggingImage) {
-      window.addEventListener("touchmove", handleTouchMove);
-      window.addEventListener("touchend", handleTouchEnd);
-    }
+    // Ensure styles have been applied
+    requestAnimationFrame(() => {
+      const rect = image.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
 
-    return () => {
-      window.removeEventListener("touchmove", handleTouchMove);
-      window.removeEventListener("touchend", handleTouchEnd);
-    };
-  }, [isDraggingImage, startPos]);
+      setImageDimensions({
+        width: rect.width,
+        height: rect.height,
+      });
+      setContainerDimensions({
+        width: containerRect.width,
+        height: containerRect.height,
+      });
+
+      if (naturalWidth > naturalHeight) {
+        setDragDirection("horizontal");
+      } else if (naturalHeight > naturalWidth) {
+        setDragDirection("vertical");
+      } else {
+        setDragDirection("none");
+      }
+
+      image.style.transform = "translate(0px, 0px)";
+      offsetRef.current = { x: 0, y: 0 };
+    });
+  };
 
   const isValidMediaFile = (file: File) => {
     return file.type.startsWith("image/") || file.type.startsWith("video/");
@@ -182,7 +267,19 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
 
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsImageDragging(true);
-    setStartPos({ x: e.clientX - offset.x, y: e.clientY - offset.y });
+    startPosRef.current = {
+      x: e.clientX - offsetRef.current.x,
+      y: e.clientY - offsetRef.current.y,
+    };
+  };
+
+  const handleTouchDown = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    setIsImageDragging(true);
+    startPosRef.current = {
+      x: touch.clientX - offsetRef.current.x,
+      y: touch.clientY - offsetRef.current.y,
+    };
   };
 
   return (
@@ -236,24 +333,21 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
               <div
                 ref={previewContainerRef}
                 onMouseDown={handleMouseDown}
-                onTouchStart={(e) => {
-                  const touch = e.touches[0];
-                  setIsImageDragging(true);
-                  setStartPos({
-                    x: touch.clientX - offset.x,
-                    y: touch.clientY - offset.y,
-                  });
-                }}
+                onTouchStart={handleTouchDown}
                 className="relative flex-grow w-full h-full overflow-hidden cursor-grab"
               >
                 <img
                   ref={draggableImageRef}
                   src={previewUrl}
+                  onLoad={handleImageLoad}
                   alt="preview"
-                  className="top-0 left-0 absolute select-none"
-                  style={{
-                    transform: `translate(${offset.x}px, ${offset.y}px)`,
-                  }}
+                  className={`absolute top-0 left-0 select-none ${
+                    dragDirection === "horizontal"
+                      ? "h-full max-w-none max-h-none"
+                      : dragDirection === "vertical"
+                      ? "w-full max-w-none max-h-none"
+                      : ""
+                  }`}
                   draggable={false}
                 />
               </div>
