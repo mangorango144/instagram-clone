@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+
 import { RiCloseLargeFill } from "react-icons/ri";
 import { LiaPhotoVideoSolid } from "react-icons/lia";
 import { BsExclamationCircle } from "react-icons/bs";
+import { IoMdArrowBack } from "react-icons/io";
 
 interface CreatePanelProps {
   onClose: () => void;
@@ -11,11 +13,13 @@ interface CreatePanelProps {
 export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
   // Refs
   const modalRef = useRef<HTMLDivElement>(null);
+  const discardModalRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const draggableImageRef = useRef<HTMLImageElement>(null);
   const offsetRef = useRef({ x: 0, y: 0 });
   const startPosRef = useRef({ x: 0, y: 0 });
+  const discardIntent = useRef<"close" | "back" | "bruh">("bruh");
 
   // Media State
   const [mediaFile, setMediaFile] = useState<File | null>(null);
@@ -40,13 +44,19 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
     height: 0,
   });
 
+  // Modal State
+  const [modalStage, setModalStage] = useState(0); // 0: Upload, 1: Crop, 2: Edit, 3: Final
+  const modalTitles = ["Create new post", "Crop", "Edit", "Create new post"];
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         modalRef.current &&
         !modalRef.current.contains(event.target as Node) &&
         (!toggleRef.current ||
-          !toggleRef.current.contains(event.target as Node))
+          !toggleRef.current.contains(event.target as Node)) &&
+        (!discardModalRef.current ||
+          !discardModalRef.current.contains(event.target as Node))
       ) {
         handleCloseAttempt();
       }
@@ -74,6 +84,7 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
     };
   }, [mediaFile, toggleRef]);
 
+  // Handle dragging of the image
   useEffect(() => {
     const clamp = (value: number, min: number, max: number) =>
       Math.min(Math.max(value, min), max);
@@ -212,6 +223,7 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
     if (isValidMediaFile(file)) {
       setMediaFile(file);
       setPreviewUrl(URL.createObjectURL(file));
+      setModalStage(1); // Advance to crop stage
       setErrorMessage(null);
     } else {
       setMediaFile(null);
@@ -222,7 +234,12 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
     }
   };
 
-  const handleButtonClick = () => fileInputRef.current?.click();
+  const handleButtonClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""; // Reset the value so same file triggers onChange
+      fileInputRef.current.click();
+    }
+  };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -254,6 +271,7 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
 
   const handleCloseAttempt = () => {
     if (mediaFile) {
+      discardIntent.current = "close";
       setShowDiscardModal(true);
     } else {
       onClose();
@@ -261,8 +279,15 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
   };
 
   const confirmDiscard = () => {
-    setShowDiscardModal(false);
-    onClose();
+    if (discardIntent.current === "close") {
+      setShowDiscardModal(false);
+      onClose();
+    } else if (discardIntent.current === "back") {
+      setMediaFile(null);
+      setPreviewUrl(null);
+      setModalStage(0); // Reset to upload stage
+      setShowDiscardModal(false);
+    }
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -282,12 +307,29 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
     };
   };
 
+  const handlePrev = () => {
+    if (modalStage === 1) {
+      discardIntent.current = "back";
+      setShowDiscardModal(true);
+    } else {
+      setModalStage((prev) => Math.max(prev - 1, 0));
+    }
+  };
+
   return (
     <div
       onDrop={handleDrop}
       onDragOver={(e) => e.preventDefault()}
-      className="z-50 fixed inset-0 flex justify-center items-start bg-black/80 py-5 overflow-y-auto custom-scrollbar"
+      className={`z-50 fixed inset-0 flex justify-center items-start bg-black/80 py-5 overflow-y-auto custom-scrollbar ${
+        isDraggingImage ? "cursor-grabbing" : ""
+      }`}
     >
+      {/* Close Icon */}
+      <RiCloseLargeFill
+        onClick={handleCloseAttempt}
+        className="right-5 absolute text-2xl hover:cursor-pointer"
+      />
+
       <div
         ref={modalRef}
         onDrop={handleDrop}
@@ -297,11 +339,36 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
       >
         {/* Modal Header */}
         <div className="relative flex justify-center items-center p-3 border-stone-600 border-b text-white">
-          <span className="font-semibold text-md">Create new post</span>
-          <RiCloseLargeFill
-            onClick={handleCloseAttempt}
-            className="right-4 absolute text-xl hover:cursor-pointer"
-          />
+          {/* Prev Button: Hidden on stage 0 */}
+          {modalStage > 0 && (
+            <IoMdArrowBack
+              onClick={handlePrev}
+              className="left-6 absolute text-white text-3xl hover:cursor-pointer"
+            />
+          )}
+
+          {/* Modal Title */}
+          <span className="font-semibold text-md">
+            {modalTitles[modalStage]}
+          </span>
+
+          {/* Next / Share Button */}
+          {modalStage > 0 && modalStage < 3 && (
+            <button
+              onClick={() => setModalStage((prev) => Math.min(prev + 1, 3))}
+              className="right-9 absolute font-semibold text-sky-500 hover:text-white text-sm hover:cursor-pointer"
+            >
+              Next
+            </button>
+          )}
+          {modalStage === 3 && (
+            <button
+              // onClick={handleShare}
+              className="right-9 absolute font-semibold text-sky-500 hover:text-white text-sm hover:cursor-pointer"
+            >
+              Share
+            </button>
+          )}
         </div>
 
         {/* Media section */}
@@ -334,7 +401,9 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
                 ref={previewContainerRef}
                 onMouseDown={handleMouseDown}
                 onTouchStart={handleTouchDown}
-                className="relative flex-grow w-full h-full overflow-hidden cursor-grab"
+                className={`relative flex-grow w-full h-full overflow-hidden cursor-grab ${
+                  isDraggingImage ? "cursor-grabbing" : "cursor-grab"
+                }`}
               >
                 <img
                   ref={draggableImageRef}
@@ -350,6 +419,14 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
                   }`}
                   draggable={false}
                 />
+                {/* Overlay grid for dragging */}
+                {isDraggingImage && (
+                  <div className="z-10 absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none">
+                    {[...Array(9)].map((_, i) => (
+                      <div key={i} className="border border-white/30" />
+                    ))}
+                  </div>
+                )}
               </div>
             )
           ) : (
@@ -378,7 +455,10 @@ export function CreatePanel({ onClose, toggleRef }: CreatePanelProps) {
 
       {/* Discard Confirmation Modal */}
       {showDiscardModal && (
-        <div className="z-60 absolute inset-0 flex justify-center items-center bg-black/50">
+        <div
+          ref={discardModalRef}
+          className="z-60 absolute inset-0 flex justify-center items-center bg-black/50"
+        >
           <div className="flex flex-col items-center bg-neutral-800 pt-6 rounded-xl w-[330px] text-white">
             <h2 className="font-base text-xl">Discard post?</h2>
             <span className="mb-6 pt-1 text-stone-400 text-sm text-center">
