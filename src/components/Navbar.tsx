@@ -10,7 +10,7 @@ import { MoreMenu } from "./MoreMenu";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
 import { SearchPanel } from "./SearchPanel";
-import { CreatePanel } from "./CreatePanel";
+import { PostCreationModal } from "./postCreation";
 
 const navClassName = `
   md:block md:top-0 bottom-0 left-0 fixed flex bg-black 
@@ -148,7 +148,7 @@ export function Navbar() {
       )}
 
       {activePanel === "create" && (
-        <CreatePanel
+        <PostCreationModal
           onClose={() => setActivePanel(null)}
           toggleRef={createToggleRef as React.RefObject<HTMLElement>}
         />
