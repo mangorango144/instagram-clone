@@ -65,6 +65,7 @@ export function PostCreationModal({
   const { handleMouseDown, handleTouchDown } = useImageDragStart(
     offsetRef,
     startPosRef,
+    modalStage,
     setIsImageDragging
   );
 
@@ -108,6 +109,7 @@ export function PostCreationModal({
     offsetRef,
     startPosRef,
     draggableImageRef,
+    modalStage,
     setIsImageDragging,
   });
 
@@ -136,6 +138,7 @@ export function PostCreationModal({
           dragDirection={dragDirection}
           previewContainerRef={previewContainerRef}
           draggableImageRef={draggableImageRef}
+          modalStage={modalStage}
           handleMouseDown={handleMouseDown}
           handleTouchDown={handleTouchDown}
           handleFileSelectClick={handleFileSelectClick}

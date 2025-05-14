@@ -1,5 +1,6 @@
 import { BsExclamationCircle } from "react-icons/bs";
 import { LiaPhotoVideoSolid } from "react-icons/lia";
+import { ModalStage } from "../../constants";
 
 type MediaStageProps = {
   isDraggingFile: boolean;
@@ -9,6 +10,7 @@ type MediaStageProps = {
   draggableImageRef: React.RefObject<HTMLImageElement | null>;
   dragDirection: "horizontal" | "vertical" | "none";
   isDraggingImage: boolean;
+  modalStage: ModalStage;
   handleFileSelectClick: () => void;
   handleMouseDown: (e: React.MouseEvent) => void;
   handleTouchDown: (e: React.TouchEvent) => void;
@@ -23,6 +25,7 @@ export function MediaStage({
   draggableImageRef,
   dragDirection,
   isDraggingImage,
+  modalStage,
   handleFileSelectClick,
   handleMouseDown,
   handleTouchDown,
@@ -59,7 +62,11 @@ export function MediaStage({
             onMouseDown={handleMouseDown}
             onTouchStart={handleTouchDown}
             className={`relative flex-grow w-full h-full overflow-hidden ${
-              isDraggingImage ? "cursor-grabbing" : "cursor-grab"
+              modalStage === ModalStage.Crop
+                ? isDraggingImage
+                  ? "cursor-grabbing"
+                  : "cursor-grab"
+                : "cursor-default"
             }`}
           >
             <img

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { ModalStage } from "../constants";
 
 type Dimensions = { width: number; height: number };
 type Offset = { x: number; y: number };
@@ -11,6 +12,7 @@ interface UseImageDraggingParams {
   offsetRef: React.RefObject<Offset>;
   startPosRef: React.RefObject<Offset>;
   draggableImageRef: React.RefObject<HTMLImageElement | null>;
+  modalStage: ModalStage;
   setIsImageDragging: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
@@ -22,9 +24,12 @@ export function useImageDragging({
   offsetRef,
   startPosRef,
   draggableImageRef,
+  modalStage,
   setIsImageDragging,
 }: UseImageDraggingParams) {
   useEffect(() => {
+    if (modalStage !== ModalStage.Crop) return;
+
     const clamp = (value: number, min: number, max: number) =>
       Math.min(Math.max(value, min), max);
 
