@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from "react";
+
 import { BsExclamationCircle } from "react-icons/bs";
 import { LiaPhotoVideoSolid } from "react-icons/lia";
 import { ModalStage } from "../../constants";
@@ -17,6 +19,21 @@ type MediaStageProps = {
   handleImageLoad: (image: HTMLImageElement, container: HTMLElement) => void;
 };
 
+const filters = {
+  Original: "",
+  Aden: "filter brightness-110 sepia",
+  Clarendron: "filter contrast-125 hue-rotate-15",
+  Crema: "filter grayscale-10 brightness-105",
+  Gingham: "filter brightness-105 contrast-90",
+  Juno: "filter saturate-150 contrast-110",
+  Lark: "filter brightness-105 contrast-105 saturate-120",
+  Ludwig: "filter brightness-120 contrast-85",
+  Moon: "filter grayscale",
+  Perpetua: "filter hue-rotate-180 contrast-90",
+  Reyes: "filter sepia brightness-110",
+  Slumber: "filter brightness-95 saturate-80 sepia",
+} as const;
+
 export function MediaStage({
   isDraggingFile,
   errorMessage,
@@ -31,6 +48,22 @@ export function MediaStage({
   handleTouchDown,
   handleImageLoad,
 }: MediaStageProps) {
+  const [showFilterOverlay, setShowFilterOverlay] = useState<boolean>(true);
+  const [selectedFilter, setSelectedFilter] =
+    useState<keyof typeof filters>("Original");
+
+  useEffect(() => {
+    if (previewUrl) {
+      setSelectedFilter("Original");
+    }
+  }, [previewUrl]);
+
+  useEffect(() => {
+    if (modalStage === ModalStage.Edit) {
+      setShowFilterOverlay(true);
+    }
+  }, [modalStage]);
+
   return (
     <div
       className={`flex flex-col flex-grow justify-center items-center space-y-4 text-white ${
@@ -80,6 +113,8 @@ export function MediaStage({
               }
               alt="preview"
               className={`absolute top-0 left-0 select-none ${
+                filters[selectedFilter]
+              } ${
                 dragDirection === "horizontal"
                   ? "h-full max-w-none max-h-none"
                   : dragDirection === "vertical"
@@ -88,11 +123,75 @@ export function MediaStage({
               }`}
               draggable={false}
             />
+
+            {/* Grid overlay for dragging */}
             {isDraggingImage && (
               <div className="z-10 absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none">
                 {[...Array(9)].map((_, i) => (
                   <div key={i} className="border border-white/30" />
                 ))}
+              </div>
+            )}
+
+            {/* Filter overlay */}
+            {modalStage === ModalStage.Edit && (
+              <div
+                className={`right-0 bottom-0 left-0 absolute pt-8 ${
+                  showFilterOverlay
+                    ? "bg-gradient-to-t from-black to-transparent"
+                    : ""
+                }`}
+              >
+                <div
+                  onClick={() => setShowFilterOverlay((prev) => !prev)}
+                  className="top-0 right-0 absolute bg-black/50 hover:bg-black mr-3 px-3 rounded-lg font-medium text-sm md:text-base hover:cursor-pointer"
+                >
+                  {showFilterOverlay ? "Hide filters" : "Show filters"}
+                </div>
+
+                <div
+                  className={`px-4 max-w-full overflow-x-auto ${
+                    showFilterOverlay ? "" : "hidden"
+                  }`}
+                >
+                  <div className="flex space-x-5 mb-4 w-max">
+                    {Object.entries(filters).map(
+                      ([filterName, filterClass]) => (
+                        <div
+                          key={filterName}
+                          onClick={() =>
+                            setSelectedFilter(
+                              filterName as keyof typeof filters
+                            )
+                          }
+                          className={`
+                            size-20 md:size-30 cursor-pointer mt-1 relative text-white
+                            ${
+                              selectedFilter === filterName
+                                ? "ring-3 ring-sky-500"
+                                : ""
+                            }
+                            rounded-xl md:rounded-2xl
+                          `}
+                        >
+                          <div
+                            className={`
+                              w-full h-full bg-cover bg-center rounded-xl md:rounded-2xl flex items-end justify-center text-[10px] md:text-[14px]
+                              ${filterClass}
+                            `}
+                            style={{
+                              backgroundImage: `url("/assets/filter_preview.jpg")`,
+                            }}
+                          >
+                            <span className="bottom-1 absolute bg-black/40 px-1 rounded">
+                              {filterName}
+                            </span>
+                          </div>
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </div>
