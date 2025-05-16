@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 
 import { BsExclamationCircle } from "react-icons/bs";
 import { LiaPhotoVideoSolid } from "react-icons/lia";
+import { GoSmiley } from "react-icons/go";
 import { ModalStage } from "../../constants";
+import { emojiList } from "../../../../utils";
 
 type MediaStageProps = {
   isDraggingFile: boolean;
@@ -34,6 +36,8 @@ const filters = {
   Slumber: "filter brightness-95 saturate-80 sepia",
 } as const;
 
+const MAX_CAPTION_LENGTH = 2200;
+
 export function MediaStage({
   isDraggingFile,
   errorMessage,
@@ -48,21 +52,80 @@ export function MediaStage({
   handleTouchDown,
   handleImageLoad,
 }: MediaStageProps) {
+  // Filter overlay stuff
   const [showFilterOverlay, setShowFilterOverlay] = useState<boolean>(true);
   const [selectedFilter, setSelectedFilter] =
     useState<keyof typeof filters>("Original");
 
+  // Final stage caption stuff
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const pickerRef = useRef<HTMLDivElement>(null);
+  const [caption, setCaption] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  const addEmoji = (emoji: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    // Calculate the new text length if the emoji is inserted
+    const newTextLength = caption.length - (end - start) + emoji.length;
+
+    if (newTextLength > MAX_CAPTION_LENGTH) {
+      return; // Don't insert the emoji if it exceeds max length
+    }
+
+    const newText =
+      caption.substring(0, start) + emoji + caption.substring(end);
+
+    setCaption(newText);
+
+    requestAnimationFrame(() => {
+      textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+      textarea.focus();
+    });
+
+    setShowEmojiPicker(false);
+  };
+
+  // Reset filter when previewUrl changes
   useEffect(() => {
     if (previewUrl) {
       setSelectedFilter("Original");
     }
   }, [previewUrl]);
 
+  // Show filter overlay when modal stage is Edit
   useEffect(() => {
     if (modalStage === ModalStage.Edit) {
       setShowFilterOverlay(true);
     }
   }, [modalStage]);
+
+  // Close emoji picker if clicked outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        pickerRef.current &&
+        !pickerRef.current.contains(event.target as Node)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    }
+
+    if (showEmojiPicker) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    // Cleanup on unmount or when showEmojiPicker changes
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showEmojiPicker]);
 
   return (
     <div
@@ -191,6 +254,50 @@ export function MediaStage({
                       )
                     )}
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Caption overlay */}
+            {modalStage === ModalStage.Final && (
+              <div className="top-3 right-3 left-3 absolute bg-neutral-800 px-5 pt-3 pb-3 rounded-xl">
+                <span className="font-medium text-stone-400">
+                  Add a caption
+                </span>
+                <textarea
+                  ref={textareaRef}
+                  name="caption"
+                  maxLength={MAX_CAPTION_LENGTH}
+                  rows={3}
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                  className="mt-2 outline-none w-full h-30 text-sm resize-none"
+                />
+                <div className="flex justify-between items-center mt-2">
+                  <div
+                    ref={pickerRef}
+                    onClick={() => setShowEmojiPicker((prev) => !prev)}
+                    className="flex items-center space-x-2"
+                  >
+                    <GoSmiley className="text-stone-400 text-2xl hover:cursor-pointer" />
+
+                    {showEmojiPicker && (
+                      <div className="top-full left-0 z-50 absolute gap-2 grid grid-cols-8 md:grid-cols-6 bg-stone-800 mt-2 p-2 rounded-xl">
+                        {emojiList.map((emoji) => (
+                          <button
+                            key={emoji}
+                            className="md:text-xl hover:scale-130 transition hover:cursor-pointer"
+                            onClick={() => addEmoji(emoji)}
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-stone-400 text-sm">
+                    {caption.length}/{MAX_CAPTION_LENGTH}
+                  </span>
                 </div>
               </div>
             )}
