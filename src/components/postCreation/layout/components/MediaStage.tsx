@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { BsExclamationCircle } from "react-icons/bs";
 import { LiaPhotoVideoSolid } from "react-icons/lia";
 import { GoSmiley } from "react-icons/go";
-import { ModalStage } from "../../constants";
+import { filters, ModalStage } from "../../constants";
 import { emojiList } from "../../../../utils";
 
 type MediaStageProps = {
@@ -15,26 +15,16 @@ type MediaStageProps = {
   dragDirection: "horizontal" | "vertical" | "none";
   isDraggingImage: boolean;
   modalStage: ModalStage;
+  selectedFilter: keyof typeof filters;
+  caption: string;
+  isUploadingPost: boolean;
   handleFileSelectClick: () => void;
   handleMouseDown: (e: React.MouseEvent) => void;
   handleTouchDown: (e: React.TouchEvent) => void;
   handleImageLoad: (image: HTMLImageElement, container: HTMLElement) => void;
+  setSelectedFilter: React.Dispatch<React.SetStateAction<keyof typeof filters>>;
+  setCaption: React.Dispatch<React.SetStateAction<string>>;
 };
-
-const filters = {
-  Original: "",
-  Aden: "filter brightness-110 sepia",
-  Clarendron: "filter contrast-125 hue-rotate-15",
-  Crema: "filter grayscale-10 brightness-105",
-  Gingham: "filter brightness-105 contrast-90",
-  Juno: "filter saturate-150 contrast-110",
-  Lark: "filter brightness-105 contrast-105 saturate-120",
-  Ludwig: "filter brightness-120 contrast-85",
-  Moon: "filter grayscale",
-  Perpetua: "filter hue-rotate-180 contrast-90",
-  Reyes: "filter sepia brightness-110",
-  Slumber: "filter brightness-95 saturate-80 sepia",
-} as const;
 
 const MAX_CAPTION_LENGTH = 2200;
 
@@ -47,20 +37,22 @@ export function MediaStage({
   dragDirection,
   isDraggingImage,
   modalStage,
+  selectedFilter,
+  caption,
+  isUploadingPost,
   handleFileSelectClick,
   handleMouseDown,
   handleTouchDown,
   handleImageLoad,
+  setSelectedFilter,
+  setCaption,
 }: MediaStageProps) {
-  // Filter overlay stuff
+  // Edit stage filter overlay
   const [showFilterOverlay, setShowFilterOverlay] = useState<boolean>(true);
-  const [selectedFilter, setSelectedFilter] =
-    useState<keyof typeof filters>("Original");
 
-  // Final stage caption stuff
+  // Final stage caption
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
-  const [caption, setCaption] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const addEmoji = (emoji: string) => {
@@ -126,6 +118,15 @@ export function MediaStage({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showEmojiPicker]);
+
+  if (isUploadingPost) {
+    return (
+      <div className="flex flex-col flex-grow justify-center items-center space-y-4 text-white">
+        <span className="text-xl">Uploading...</span>
+        <div className="border-sky-500 border-b-2 rounded-full w-10 h-10 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div

@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { PostModalLayout } from "./layout";
+import { filters, ModalStage } from "./constants";
 import {
   useDetermineDragDirection,
   useModalCloseListener,
@@ -11,7 +12,6 @@ import {
   useImageDragInit,
   useModalStage,
 } from "./hooks";
-import { ModalStage } from "./constants";
 
 interface PostCreationModalProps {
   onClose: () => void;
@@ -35,11 +35,17 @@ export function PostCreationModal({
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isUploadingPost, setIsUploadingPost] = useState(false);
+  const [selectedFilter, setSelectedFilter] =
+    useState<keyof typeof filters>("Original");
 
   // UI State: Controls drag status, discard modal visibility, and modal stages
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
   const [modalStage, setModalStage] = useState<ModalStage>(ModalStage.Upload);
+
+  // Caption State: Manages the caption input
+  const [caption, setCaption] = useState("");
 
   // Drag Position State: Manages image dragging behavior
   const [isDraggingImage, setIsImageDragging] = useState(false);
@@ -50,6 +56,14 @@ export function PostCreationModal({
     setDragDirection,
     handleImageLoad,
   } = useImageDragInit(offsetRef);
+
+  // Crop area based on drag offset and container size
+  const crop = {
+    x: -offsetRef.current.x,
+    y: -offsetRef.current.y,
+    width: containerDimensions.width,
+    height: containerDimensions.height,
+  };
 
   // File input handling logic
   const { fileInputRef, handleFileChange, handleFileSelectClick, handleDrop } =
@@ -70,9 +84,11 @@ export function PostCreationModal({
   );
 
   // Handlers for navigating between modal stages
-  const { handlePrev, handleNext } = useModalStage({
+  const { handlePrev, handleNext, handleShare } = useModalStage({
     discardIntent,
     modalStage,
+    selectedFilter,
+    caption,
     setModalStage,
     setShowDiscardModal,
   });
@@ -129,6 +145,14 @@ export function PostCreationModal({
           modalStage={modalStage}
           handlePrev={handlePrev}
           handleNext={handleNext}
+          handleShare={() =>
+            handleShare(
+              draggableImageRef.current as HTMLImageElement,
+              crop,
+              setIsUploadingPost,
+              onClose
+            )
+          }
         />
         <PostModalLayout.MediaStage
           errorMessage={errorMessage}
@@ -139,10 +163,15 @@ export function PostCreationModal({
           previewContainerRef={previewContainerRef}
           draggableImageRef={draggableImageRef}
           modalStage={modalStage}
+          selectedFilter={selectedFilter}
+          caption={caption}
+          isUploadingPost={isUploadingPost}
           handleMouseDown={handleMouseDown}
           handleTouchDown={handleTouchDown}
           handleFileSelectClick={handleFileSelectClick}
           handleImageLoad={handleImageLoad}
+          setSelectedFilter={setSelectedFilter}
+          setCaption={setCaption}
         />
         <PostModalLayout.HiddenFileInput
           fileInputRef={fileInputRef}

@@ -5,9 +5,15 @@ type HeaderProps = {
   modalStage: number;
   handlePrev: () => void;
   handleNext: () => void;
+  handleShare: () => void;
 };
 
-export function Header({ modalStage, handlePrev, handleNext }: HeaderProps) {
+export function Header({
+  modalStage,
+  handlePrev,
+  handleNext,
+  handleShare,
+}: HeaderProps) {
   const modalTitles = ["Create new post", "Crop", "Edit", "Create new post"];
 
   return (
@@ -28,7 +34,10 @@ export function Header({ modalStage, handlePrev, handleNext }: HeaderProps) {
         </button>
       )}
       {modalStage === ModalStage.Final && (
-        <button className="right-9 absolute font-semibold text-sky-500 hover:text-white text-sm hover:cursor-pointer">
+        <button
+          onClick={handleShare}
+          className="right-9 absolute font-semibold text-sky-500 hover:text-white text-sm hover:cursor-pointer"
+        >
           Share
         </button>
       )}
