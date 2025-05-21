@@ -15,7 +15,7 @@ import {
   getFollowing,
   unfollowUser,
 } from "../../utils";
-import { UserListModal } from "../../components";
+import { PostModal, UserListModal } from "../../components";
 import { db } from "../../config";
 import { collection, getDocs, query, where } from "firebase/firestore";
 
@@ -46,6 +46,7 @@ export function UserPage() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followers, setFollowers] = useState<FirestoreUser[]>([]);
   const [following, setFollowing] = useState<FirestoreUser[]>([]);
+  const [isPostModalActive, setIsPostModalActive] = useState(false);
   const [modalType, setModalType] = useState<"followers" | "following" | null>(
     null
   );
@@ -298,7 +299,11 @@ export function UserPage() {
       {contentToShow.length ? (
         <div className="gap-[3px] md:gap-[5px] grid grid-cols-3">
           {contentToShow.map((post, index) => (
-            <div className="bg-stone-500 aspect-square" key={index}>
+            <div
+              className="bg-stone-500 aspect-square hover:cursor-pointer"
+              key={index}
+              onClick={() => setIsPostModalActive(true)}
+            >
               {post}
             </div>
           ))}
@@ -324,6 +329,10 @@ export function UserPage() {
           fetchFollowersAndFollowing={fetchFollowersAndFollowing}
           onClose={() => setModalType(null)}
         />
+      )}
+
+      {isPostModalActive && (
+        <PostModal onClose={() => setIsPostModalActive(false)} />
       )}
     </div>
   );
