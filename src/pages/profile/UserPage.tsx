@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { FirestoreUser } from "../../types";
+import { FirestoreUser, PostType } from "../../types";
 import { SlOptions } from "react-icons/sl";
 import { BsGearWide } from "react-icons/bs";
 import { IoMdGrid } from "react-icons/io";
@@ -17,7 +17,7 @@ import {
 } from "../../utils";
 import { PostModal, UserListModal } from "../../components";
 import { db } from "../../config";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
 
 export function UserPage() {
   // Router
@@ -35,10 +35,10 @@ export function UserPage() {
   const isSaved = location.pathname.endsWith("/saved");
 
   // Mock content
-  const posts = [1, 2, 3, 4, 5, 6, 7, 8];
-  const tagged = [1, 2, 3, 4];
-  const saved = [1, 2];
-  const contentToShow = isTagged ? tagged : isSaved ? saved : posts;
+  // const posts = [1, 2, 3, 4, 5, 6, 7, 8];
+  // const tagged = [1, 2, 3, 4];
+  // const saved = [1, 2];
+  // const contentToShow = isTagged ? tagged : isSaved ? saved : posts;
 
   // State
   const [user, setUser] = useState<FirestoreUser | null>(null);
@@ -54,6 +54,7 @@ export function UserPage() {
     Map<string, FirestoreUser>
   >(new Map());
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
+  const [userPosts, setUserPosts] = useState<PostType[]>([]);
 
   const fetchFollowersAndFollowing = async (uid: string) => {
     const [followerUsers, followingUsers] = await Promise.all([
@@ -86,7 +87,28 @@ export function UserPage() {
 
           setUser(fetchedUser);
 
-          // Only fetch auth user's followings if authenticated
+          // 🔽 Fetch user's posts
+          const postsRef = collection(db, "posts");
+          const postsQuery = query(
+            postsRef,
+            where("uid", "==", fetchedUser.uid),
+            orderBy("createdAt", "desc")
+          );
+          const postsSnapshot = await getDocs(postsQuery);
+          const fetchedPosts = postsSnapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+              uid: data.uid,
+              caption: data.caption,
+              imageUrl: data.imageUrl,
+              createdAt: data.createdAt,
+              likes: data.likes,
+              comments: data.comments,
+            };
+          }) as PostType[];
+          setUserPosts(fetchedPosts);
+
+          // Fetch auth user's followings if authenticated
           if (authUserId) {
             const authFollowings = await getFollowing(authUserId);
             const authFollowingsMap = new Map(
@@ -171,7 +193,7 @@ export function UserPage() {
 
         <div className="flex items-center gap-9 mt-4 text-stone-400">
           <p>
-            <span className="font-semibold text-white">{posts.length}</span>{" "}
+            <span className="font-semibold text-white">{userPosts.length}</span>{" "}
             posts
           </p>
           <p
@@ -237,7 +259,7 @@ export function UserPage() {
 
         <div className="flex justify-center gap-5 mt-3 py-5 border-stone-800 border-t-[1px] text-stone-400">
           <p>
-            <span className="font-semibold text-white">{posts.length}</span>{" "}
+            <span className="font-semibold text-white">{userPosts.length}</span>{" "}
             posts
           </p>
           <p
@@ -297,18 +319,22 @@ export function UserPage() {
       </div>
 
       {/* Posts Section */}
-      {contentToShow.length ? (
+      {userPosts.length ? (
         <div className="gap-[3px] md:gap-[5px] grid grid-cols-3">
-          {contentToShow.map((post, index) => (
+          {userPosts.map((post, index) => (
             <div
-              className="bg-stone-500 aspect-square hover:cursor-pointer"
+              className="hover:opacity-30 aspect-square overflow-hidden hover:cursor-pointer"
               key={index}
               onClick={() => {
                 setCurrentPostIndex(index); // set which post is clicked
                 setIsPostModalActive(true); // open modal
               }}
             >
-              {post}
+              <img
+                src={post.imageUrl}
+                alt={post.caption || `Post ${index + 1}`}
+                className="w-full h-full object-cover"
+              />
             </div>
           ))}
         </div>
@@ -337,7 +363,8 @@ export function UserPage() {
 
       {isPostModalActive && (
         <PostModal
-          posts={posts}
+          posts={userPosts}
+          username={user.username}
           currentIndex={currentPostIndex}
           setCurrentIndex={setCurrentPostIndex}
           onClose={() => setIsPostModalActive(false)}

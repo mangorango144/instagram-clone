@@ -3,6 +3,7 @@ import { PostImage } from "./PostImage";
 import { PostSidebar } from "./PostSidebar";
 import { CloseButton } from "../CloseButton";
 import { PostNavigator } from "./PostNavigator";
+import { PostType } from "../../types";
 import {
   useArrowNavigation,
   useModalBehavior,
@@ -10,7 +11,8 @@ import {
 } from "./hooks";
 
 interface PostModalProps {
-  posts: number[];
+  posts: PostType[];
+  username: string;
   currentIndex: number;
   setCurrentIndex: React.Dispatch<React.SetStateAction<number>>;
   onClose: () => void;
@@ -18,6 +20,7 @@ interface PostModalProps {
 
 export function PostModal({
   posts,
+  username,
   currentIndex,
   setCurrentIndex,
   onClose,
@@ -63,8 +66,8 @@ export function PostModal({
         ref={modalRef}
         className="flex lg:flex-row flex-col bg-stone-900 my-auto rounded-xl lg:rounded-none w-[90%] lg:w-[1050px] h-auto lg:h-[700px] overflow-hidden"
       >
-        <PostImage postId={posts[currentIndex]} />
-        <PostSidebar />
+        <PostImage imageUrl={posts[currentIndex].imageUrl} />
+        <PostSidebar username={username} post={posts[currentIndex]} />
       </div>
 
       <div ref={navigatorRef} className="hidden lg:block">

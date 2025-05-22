@@ -12,6 +12,7 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.6.1",
     "@tailwindcss/postcss": "^4.0.9",
+    "date-fns": "^4.1.0",
     "firebase": "^11.4.0",
     "framer-motion": "^12.4.10",
     "postcss": "^8.5.3",

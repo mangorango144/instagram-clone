@@ -10,7 +10,7 @@ const mockComments = [
   { user: "astechnix_", text: "Well explained" },
 ];
 
-export function CommentsList() {
+export function CommentsList({ comments }: { comments: string[] }) {
   const repeatedComments = Array.from(
     { length: 20 },
     (_, i) => mockComments[i % mockComments.length]
@@ -26,14 +26,14 @@ export function CommentsList() {
 
   return (
     <div className="space-y-7 mt-9 text-sm">
-      {repeatedComments.map((comment, index) => (
+      {comments.map((comment, index) => (
         <div key={index} className="flex justify-start items-center">
           <div className="bg-stone-500 mb-auto rounded-full min-w-9 size-9"></div>
 
           <div className="flex flex-col ml-3">
             <p className="text-white break-all whitespace-pre-wrap">
-              <span className="font-semibold">{comment.user}</span>{" "}
-              <span className="text-white/87">{comment.text}</span>
+              <span className="font-semibold">comment.user</span>{" "}
+              <span className="text-white/87">comment.text</span>
             </p>
             <div className="flex space-x-3 mt-1 font-medium text-stone-400 text-xs">
               <span>1w</span>

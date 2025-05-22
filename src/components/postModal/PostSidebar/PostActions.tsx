@@ -1,13 +1,22 @@
-import { FaRegHeart } from "react-icons/fa";
-import { FaRegComment } from "react-icons/fa";
+import { FaRegHeart, FaRegComment, FaRegBookmark } from "react-icons/fa";
 import { FiSend } from "react-icons/fi";
-import { FaRegBookmark } from "react-icons/fa";
+import { Timestamp } from "firebase/firestore";
+import { formatDistanceToNow } from "date-fns";
 
 type PostActionsProps = {
+  likes: string[];
+  createdAt: Timestamp;
   onCommentClick: () => void;
 };
 
-export function PostActions({ onCommentClick }: PostActionsProps) {
+export function PostActions({
+  likes,
+  createdAt,
+  onCommentClick,
+}: PostActionsProps) {
+  const date = createdAt.toDate();
+  const relativeTime = formatDistanceToNow(date, { addSuffix: true });
+
   return (
     <div className="flex flex-col">
       <div className="flex justify-start items-center text-[24px] text-white">
@@ -20,8 +29,13 @@ export function PostActions({ onCommentClick }: PostActionsProps) {
         <FaRegBookmark className="ml-auto hover:cursor-pointer" />
       </div>
 
-      <div className="mt-2 font-semibold text-white text-sm">780 likes</div>
-      <div className="text-stone-400 text-xs">5 days ago</div>
+      <div className="mt-2 font-semibold text-white text-sm">
+        {likes.length} likes
+      </div>
+
+      <time dateTime={date.toISOString()} className="text-stone-400 text-xs">
+        {relativeTime}
+      </time>
     </div>
   );
 }
