@@ -1,39 +1,54 @@
-import { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import { PostImage } from "./PostImage";
 import { PostSidebar } from "./PostSidebar";
 import { CloseButton } from "../CloseButton";
+import { PostNavigator } from "./PostNavigator";
+import {
+  useArrowNavigation,
+  useModalBehavior,
+  useSwipeNavigation,
+} from "./hooks";
 
 interface PostModalProps {
+  posts: number[];
+  currentIndex: number;
+  setCurrentIndex: React.Dispatch<React.SetStateAction<number>>;
   onClose: () => void;
 }
 
-export function PostModal({ onClose }: PostModalProps) {
+export function PostModal({
+  posts,
+  currentIndex,
+  setCurrentIndex,
+  onClose,
+}: PostModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const navigatorRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      }
-    };
+  const onNext = () =>
+    setCurrentIndex((i) => Math.min(i + 1, posts.length - 1));
+  const onPrev = () => setCurrentIndex((i) => Math.max(i - 1, 0));
 
-    document.addEventListener("keydown", handleKeyDown);
+  // Closes modal on Escape key press and disables body scroll while modal is open (uses useEffect)
+  useModalBehavior(onClose);
 
-    // Prevent body scroll when modal is open
-    const originalStyle = window.getComputedStyle(document.body).overflow;
-    document.body.style.overflow = "hidden";
+  // Navigates between posts with arrow keys (uses useEffect)
+  useArrowNavigation(onPrev, onNext);
 
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-
-      // Restore original body overflow style
-      document.body.style.overflow = originalStyle;
-    };
-  }, [onClose]);
+  // Enables swipe gestures on the modal to navigate between posts (uses useEffect internally)
+  useSwipeNavigation(modalRef, {
+    onSwipeLeft: onNext,
+    onSwipeRight: onPrev,
+  });
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // if click target is outside modal content
-    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+    const target = e.target as Node;
+    if (
+      modalRef.current &&
+      !modalRef.current.contains(target) &&
+      navigatorRef.current &&
+      !navigatorRef.current.contains(target)
+    ) {
       onClose();
     }
   };
@@ -48,8 +63,17 @@ export function PostModal({ onClose }: PostModalProps) {
         ref={modalRef}
         className="flex lg:flex-row flex-col bg-stone-900 my-auto rounded-xl lg:rounded-none w-[90%] lg:w-[1050px] h-auto lg:h-[700px] overflow-hidden"
       >
-        <PostImage />
+        <PostImage postId={posts[currentIndex]} />
         <PostSidebar />
+      </div>
+
+      <div ref={navigatorRef} className="hidden lg:block">
+        <PostNavigator
+          currentIndex={currentIndex}
+          totalPosts={posts.length}
+          onNext={onNext}
+          onPrev={onPrev}
+        />
       </div>
     </div>
   );

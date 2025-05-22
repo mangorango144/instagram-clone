@@ -53,6 +53,7 @@ export function UserPage() {
   const [authUserFollowings, setAuthUserFollowings] = useState<
     Map<string, FirestoreUser>
   >(new Map());
+  const [currentPostIndex, setCurrentPostIndex] = useState(0);
 
   const fetchFollowersAndFollowing = async (uid: string) => {
     const [followerUsers, followingUsers] = await Promise.all([
@@ -302,7 +303,10 @@ export function UserPage() {
             <div
               className="bg-stone-500 aspect-square hover:cursor-pointer"
               key={index}
-              onClick={() => setIsPostModalActive(true)}
+              onClick={() => {
+                setCurrentPostIndex(index); // set which post is clicked
+                setIsPostModalActive(true); // open modal
+              }}
             >
               {post}
             </div>
@@ -332,7 +336,12 @@ export function UserPage() {
       )}
 
       {isPostModalActive && (
-        <PostModal onClose={() => setIsPostModalActive(false)} />
+        <PostModal
+          posts={posts}
+          currentIndex={currentPostIndex}
+          setCurrentIndex={setCurrentPostIndex}
+          onClose={() => setIsPostModalActive(false)}
+        />
       )}
     </div>
   );
