@@ -1,8 +1,11 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { GoSmiley } from "react-icons/go";
 
-export function AddCommentForm() {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+interface AddCommentFormProps {
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
+}
+
+export function AddCommentForm({ textareaRef }: AddCommentFormProps) {
   const [text, setText] = useState("");
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

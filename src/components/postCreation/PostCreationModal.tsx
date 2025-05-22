@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { PostModalLayout } from "./layout";
 import { filters, ModalStage } from "./constants";
+import { CloseButton } from "../CloseButton";
 import {
   useDetermineDragDirection,
   useModalCloseListener,
@@ -134,7 +135,7 @@ export function PostCreationModal({
 
   return (
     <PostModalLayout handleDrop={handleDrop} isDraggingImage={isDraggingImage}>
-      <PostModalLayout.CloseButton onClose={handleCloseAttempt} />
+      <CloseButton onClose={handleCloseAttempt} />
       <PostModalLayout.Modal
         modalRef={modalRef}
         handleDrop={handleDrop}

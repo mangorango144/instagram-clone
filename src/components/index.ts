@@ -6,3 +6,4 @@ export { SearchPanel } from "./SearchPanel";
 export { CreatePanel } from "./CreatePanel";
 export { UserListModal } from "./UserListModal";
 export { PostModal } from "./postModal";
+export { CloseButton } from "./CloseButton";

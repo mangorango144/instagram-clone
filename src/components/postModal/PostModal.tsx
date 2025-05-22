@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { PostImage } from "./PostImage";
 import { PostSidebar } from "./PostSidebar";
+import { CloseButton } from "../CloseButton";
 
 interface PostModalProps {
   onClose: () => void;
@@ -42,9 +43,10 @@ export function PostModal({ onClose }: PostModalProps) {
       className="z-50 fixed inset-0 flex justify-center items-center bg-black/50 py-5 overflow-y-auto custom-scrollbar"
       onClick={handleBackdropClick}
     >
+      <CloseButton onClose={onClose} extraClasses="hidden lg:block" />
       <div
         ref={modalRef}
-        className="flex lg:flex-row flex-col bg-stone-900 my-auto w-[90%] lg:w-[1050px] h-auto lg:h-[700px]"
+        className="flex lg:flex-row flex-col bg-stone-900 my-auto rounded-xl lg:rounded-none w-[90%] lg:w-[1050px] h-auto lg:h-[700px] overflow-hidden"
       >
         <PostImage />
         <PostSidebar />

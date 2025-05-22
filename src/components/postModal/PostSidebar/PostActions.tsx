@@ -3,12 +3,19 @@ import { FaRegComment } from "react-icons/fa";
 import { FiSend } from "react-icons/fi";
 import { FaRegBookmark } from "react-icons/fa";
 
-export function PostActions() {
+type PostActionsProps = {
+  onCommentClick: () => void;
+};
+
+export function PostActions({ onCommentClick }: PostActionsProps) {
   return (
     <div className="flex flex-col">
       <div className="flex justify-start items-center text-[24px] text-white">
         <FaRegHeart className="hover:cursor-pointer" />
-        <FaRegComment className="mx-5 hover:cursor-pointer" />
+        <FaRegComment
+          className="mx-5 hover:cursor-pointer"
+          onClick={onCommentClick}
+        />
         <FiSend className="hover:cursor-pointer" />
         <FaRegBookmark className="ml-auto hover:cursor-pointer" />
       </div>

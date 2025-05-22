@@ -1,7 +1,6 @@
 import {
   HiddenFileInput,
   DiscardModal,
-  CloseButton,
   MediaStage,
   Header,
   Modal,
@@ -9,14 +8,14 @@ import {
 
 type PostModalLayoutProps = {
   children: React.ReactNode;
-  handleDrop: (e: React.DragEvent<HTMLDivElement>) => void;
   isDraggingImage: boolean;
+  handleDrop: (e: React.DragEvent<HTMLDivElement>) => void;
 };
 
 export function PostModalLayout({
   children,
-  handleDrop,
   isDraggingImage,
+  handleDrop,
 }: PostModalLayoutProps) {
   return (
     <div
@@ -31,7 +30,6 @@ export function PostModalLayout({
   );
 }
 
-PostModalLayout.CloseButton = CloseButton;
 PostModalLayout.Modal = Modal;
 PostModalLayout.Header = Header;
 PostModalLayout.MediaStage = MediaStage;
