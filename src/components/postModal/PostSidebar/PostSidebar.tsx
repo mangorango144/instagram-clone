@@ -4,14 +4,25 @@ import { CommentsList } from "./CommentsList";
 import { PostActions } from "./PostActions";
 import { PostCaption } from "./PostCaption";
 import { PosterInfo } from "./PosterInfo";
-import { PostType } from "../../../types";
+import { FirestoreUser, PostType } from "../../../types";
 
 interface PostSidebarProps {
   username: string;
   post: PostType;
+  authUserFollowings: Map<string, FirestoreUser>;
+  setAuthUserFollowings: (followings: Map<string, FirestoreUser>) => void;
+  currentUserPage: FirestoreUser;
+  fetchFollowersAndFollowing: (uid: string) => Promise<void>;
 }
 
-export function PostSidebar({ username, post }: PostSidebarProps) {
+export function PostSidebar({
+  username,
+  post,
+  authUserFollowings,
+  setAuthUserFollowings,
+  currentUserPage,
+  fetchFollowersAndFollowing,
+}: PostSidebarProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   return (
@@ -25,6 +36,11 @@ export function PostSidebar({ username, post }: PostSidebarProps) {
           likes={post.likes}
           createdAt={post.createdAt}
           onCommentClick={() => textareaRef.current?.focus()}
+          authUserFollowings={authUserFollowings}
+          setAuthUserFollowings={setAuthUserFollowings}
+          currentUserPage={currentUserPage}
+          fetchFollowersAndFollowing={fetchFollowersAndFollowing}
+          postUid={post.uid}
         />
         <AddCommentForm textareaRef={textareaRef} />
       </div>

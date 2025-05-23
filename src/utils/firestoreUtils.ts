@@ -8,9 +8,10 @@ import {
   deleteDoc,
   addDoc,
   serverTimestamp,
+  orderBy,
 } from "firebase/firestore";
 import { db } from "../config";
-import { FirestoreUser } from "../types";
+import { FirestoreUser, PostType } from "../types";
 
 export const getEmailFromUsername = async (
   username: string
@@ -26,6 +27,23 @@ export const getEmailFromUsername = async (
   } catch (error: any) {
     console.error("Error fetching email from username:", error.message);
   }
+  return null;
+};
+
+export const getUserByUid = async (
+  uid: string
+): Promise<FirestoreUser | null> => {
+  try {
+    const userDocRef = doc(db, "users", uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (userDoc.exists()) {
+      return userDoc.data() as FirestoreUser;
+    }
+  } catch (error: any) {
+    console.error("Error fetching user by UID:", error.message);
+  }
+
   return null;
 };
 
@@ -148,3 +166,25 @@ export const getFollowing = async (
   const users = await Promise.all(userPromises);
   return users.filter((user): user is FirestoreUser => user !== null); // Filter out null values
 };
+
+export async function fetchUserPosts(userId: string): Promise<PostType[]> {
+  const postsRef = collection(db, "posts");
+  const postsQuery = query(
+    postsRef,
+    where("uid", "==", userId),
+    orderBy("createdAt", "desc")
+  );
+  const postsSnapshot = await getDocs(postsQuery);
+
+  return postsSnapshot.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      uid: data.uid,
+      caption: data.caption,
+      imageUrl: data.imageUrl,
+      createdAt: data.createdAt,
+      likes: data.likes,
+      comments: data.comments,
+    };
+  }) as PostType[];
+}

@@ -10,6 +10,7 @@ import { CiCamera } from "react-icons/ci";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 import {
+  fetchUserPosts,
   followUser,
   getFollowers,
   getFollowing,
@@ -17,7 +18,7 @@ import {
 } from "../../utils";
 import { PostModal, UserListModal } from "../../components";
 import { db } from "../../config";
-import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 
 export function UserPage() {
   // Router
@@ -87,25 +88,7 @@ export function UserPage() {
 
           setUser(fetchedUser);
 
-          // 🔽 Fetch user's posts
-          const postsRef = collection(db, "posts");
-          const postsQuery = query(
-            postsRef,
-            where("uid", "==", fetchedUser.uid),
-            orderBy("createdAt", "desc")
-          );
-          const postsSnapshot = await getDocs(postsQuery);
-          const fetchedPosts = postsSnapshot.docs.map((doc) => {
-            const data = doc.data();
-            return {
-              uid: data.uid,
-              caption: data.caption,
-              imageUrl: data.imageUrl,
-              createdAt: data.createdAt,
-              likes: data.likes,
-              comments: data.comments,
-            };
-          }) as PostType[];
+          const fetchedPosts = await fetchUserPosts(fetchedUser.uid);
           setUserPosts(fetchedPosts);
 
           // Fetch auth user's followings if authenticated
@@ -325,7 +308,9 @@ export function UserPage() {
             <div
               className="hover:opacity-30 aspect-square overflow-hidden hover:cursor-pointer"
               key={index}
-              onClick={() => {
+              onClick={async () => {
+                const fetchedPosts = await fetchUserPosts(user.uid); // fetch posts again to ensure latest data
+                setUserPosts(fetchedPosts); // update posts
                 setCurrentPostIndex(index); // set which post is clicked
                 setIsPostModalActive(true); // open modal
               }}
@@ -366,6 +351,10 @@ export function UserPage() {
           posts={userPosts}
           username={user.username}
           currentIndex={currentPostIndex}
+          authUserFollowings={authUserFollowings}
+          setAuthUserFollowings={setAuthUserFollowings}
+          currentUserPage={user as FirestoreUser}
+          fetchFollowersAndFollowing={fetchFollowersAndFollowing}
           setCurrentIndex={setCurrentPostIndex}
           onClose={() => setIsPostModalActive(false)}
         />

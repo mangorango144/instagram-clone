@@ -3,7 +3,7 @@ import { PostImage } from "./PostImage";
 import { PostSidebar } from "./PostSidebar";
 import { CloseButton } from "../CloseButton";
 import { PostNavigator } from "./PostNavigator";
-import { PostType } from "../../types";
+import { FirestoreUser, PostType } from "../../types";
 import {
   useArrowNavigation,
   useModalBehavior,
@@ -14,6 +14,10 @@ interface PostModalProps {
   posts: PostType[];
   username: string;
   currentIndex: number;
+  authUserFollowings: Map<string, FirestoreUser>;
+  setAuthUserFollowings: (followings: Map<string, FirestoreUser>) => void;
+  currentUserPage: FirestoreUser;
+  fetchFollowersAndFollowing: (uid: string) => Promise<void>;
   setCurrentIndex: React.Dispatch<React.SetStateAction<number>>;
   onClose: () => void;
 }
@@ -22,6 +26,10 @@ export function PostModal({
   posts,
   username,
   currentIndex,
+  authUserFollowings,
+  setAuthUserFollowings,
+  currentUserPage,
+  fetchFollowersAndFollowing,
   setCurrentIndex,
   onClose,
 }: PostModalProps) {
@@ -67,7 +75,14 @@ export function PostModal({
         className="flex lg:flex-row flex-col bg-stone-900 my-auto rounded-xl lg:rounded-none w-[90%] lg:w-[1050px] h-auto lg:h-[700px] overflow-hidden"
       >
         <PostImage imageUrl={posts[currentIndex].imageUrl} />
-        <PostSidebar username={username} post={posts[currentIndex]} />
+        <PostSidebar
+          username={username}
+          post={posts[currentIndex]}
+          authUserFollowings={authUserFollowings}
+          setAuthUserFollowings={setAuthUserFollowings}
+          currentUserPage={currentUserPage}
+          fetchFollowersAndFollowing={fetchFollowersAndFollowing}
+        />
       </div>
 
       <div ref={navigatorRef} className="hidden lg:block">
