@@ -1,5 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 import { FirestoreUser } from "./user";
+import { CommentType } from "./comment";
 
 export interface PostType {
   postId: string;
@@ -8,5 +9,5 @@ export interface PostType {
   imageUrl: string;
   createdAt: Timestamp;
   likes: FirestoreUser[];
-  comments: string[];
+  comments: CommentType[];
 }

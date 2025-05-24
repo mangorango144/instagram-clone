@@ -42,13 +42,13 @@ export function PostSidebar({
           fetchFollowersAndFollowing={fetchFollowersAndFollowing}
           post={post}
         />
-        <AddCommentForm textareaRef={textareaRef} />
+        <AddCommentForm textareaRef={textareaRef} post={post} />
       </div>
 
       {/* Scrollable content: Caption + Comments */}
       <div className="flex-1 space-y-4 order-3 lg:order-2 px-4 py-4 border-white/10 border-t lg:border-none overflow-y-visible lg:overflow-y-auto hide-scrollbar">
         <PostCaption username={username} caption={post.caption} />
-        <CommentsList comments={post.comments} />
+        <CommentsList comments={post.comments} postId={post.postId} />
       </div>
     </div>
   );

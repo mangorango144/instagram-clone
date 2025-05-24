@@ -68,11 +68,11 @@ export function PostActions({
   const handleLikeToggle = async () => {
     try {
       const postsRef = collection(db, "posts");
-      const q = query(postsRef, where("uid", "==", post.postId));
+      const q = query(postsRef, where("uid", "==", post.uid));
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
-        console.warn("No post found with uid:", post.postId);
+        console.warn("No post found with uid:", post.uid);
         return;
       }
 

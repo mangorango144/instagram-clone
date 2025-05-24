@@ -1,28 +1,88 @@
-import { useState } from "react";
 import { GoHeart, GoHeartFill } from "react-icons/go";
+import { CommentType } from "../../../types";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../store";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import { getUserByUid } from "../../../utils";
+import { db } from "../../../config";
 
-const mockComments = [
-  {
-    user: "rubenprozo51",
-    text: "Part 4. PleaseFASDFSAFA FDFFAFDSFSDFSDFSFSAFSAFSADFDFSFSAFSAFDFSFSAFSAFDFSFSAFSAFDFSFSAFSAFDFSFSAFSAFDFSFSAFSAFDFSFSAFSAFDFSFSAFSAFDFSFSAFSAF",
-  },
-  { user: "vishal_daanbhi", text: "🔥" },
-  { user: "astechnix_", text: "Well explained" },
-];
+export function CommentsList({
+  comments: initialComments,
+  postId,
+}: {
+  comments: CommentType[];
+  postId: string;
+}) {
+  const authUser = useSelector((state: RootState) => state.auth);
+  const [comments, setComments] = useState<CommentType[]>(initialComments);
 
-export function CommentsList({ comments }: { comments: string[] }) {
-  const repeatedComments = Array.from(
-    { length: 20 },
-    (_, i) => mockComments[i % mockComments.length]
-  );
-
-  const [likedStates, setLikedStates] = useState<boolean[]>(
-    Array(repeatedComments.length).fill(false)
-  );
-
-  const toggleLike = (index: number) => {
-    setLikedStates((prev) => prev.map((val, i) => (i === index ? !val : val)));
+  const hasUserLiked = (comment: CommentType) => {
+    return comment.likes.some((user) => user.username === authUser.username);
   };
+
+  const handleCommentLike = async (index: number) => {
+    try {
+      const fullAuthUser = await getUserByUid(authUser.uid as string);
+      if (!fullAuthUser) return;
+
+      // Optimistic UI update
+      setComments((prev) =>
+        prev.map((comment, i) => {
+          if (i !== index) return comment;
+
+          const alreadyLiked = hasUserLiked(comment);
+
+          const updatedLikes = alreadyLiked
+            ? comment.likes.filter((u) => u.username !== fullAuthUser.username)
+            : [...comment.likes, fullAuthUser];
+
+          return {
+            ...comment,
+            likes: updatedLikes,
+          };
+        })
+      );
+
+      // Fetch latest post document
+      const postRef = doc(db, "posts", postId);
+      const postSnap = await getDoc(postRef);
+      if (!postSnap.exists()) return;
+
+      const postData = postSnap.data();
+      const currentComments = postData.comments || [];
+
+      const updatedComments = currentComments.map(
+        (comment: CommentType, i: number) => {
+          if (i !== index) return comment;
+
+          const alreadyLiked = comment.likes.some(
+            (u) => u.username === fullAuthUser.username
+          );
+
+          const newLikes = alreadyLiked
+            ? comment.likes.filter((u) => u.username !== fullAuthUser.username)
+            : [...comment.likes, fullAuthUser];
+
+          return {
+            ...comment,
+            likes: newLikes,
+          };
+        }
+      );
+
+      // Write back updated comments array
+      await updateDoc(postRef, {
+        comments: updatedComments,
+      });
+    } catch (err) {
+      console.error("Failed to like comment:", err);
+    }
+  };
+
+  useEffect(() => {
+    setComments(initialComments);
+  }, [initialComments]);
 
   return (
     <div className="space-y-7 mt-9 text-sm">
@@ -32,21 +92,21 @@ export function CommentsList({ comments }: { comments: string[] }) {
 
           <div className="flex flex-col ml-3">
             <p className="text-white break-all whitespace-pre-wrap">
-              <span className="font-semibold">comment.user</span>{" "}
-              <span className="text-white/87">comment.text</span>
+              <span className="font-semibold">{comment.username}</span>{" "}
+              <span className="text-white/87">{comment.text}</span>
             </p>
             <div className="flex space-x-3 mt-1 font-medium text-stone-400 text-xs">
               <span>1w</span>
-              <span>1 like</span>
+              <span>{comment.likes.length} likes</span>
               <span className="hover:cursor-pointer">Reply</span>
             </div>
           </div>
 
           <span
             className="mt-1 mb-auto ml-auto text-[15px] hover:scale-110 active:scale-70 transition-transform duration-200 ease-in-out cursor-pointer"
-            onClick={() => toggleLike(index)}
+            onClick={() => handleCommentLike(index)}
           >
-            {likedStates[index] ? (
+            {hasUserLiked(comment) ? (
               <GoHeartFill className="ml-2 text-red-500 scale-110 transition-all duration-200" />
             ) : (
               <GoHeart className="ml-2 text-white/87 scale-100 transition-all duration-200" />
