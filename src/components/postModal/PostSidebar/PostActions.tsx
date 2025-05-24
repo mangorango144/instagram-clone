@@ -137,6 +137,10 @@ export function PostActions({
   };
 
   useEffect(() => {
+    setLocalLikes(likes);
+  }, [likes]);
+
+  useEffect(() => {
     const checkIfSaved = async () => {
       const savedPostsRef = collection(db, "savedPosts");
       const q = query(
