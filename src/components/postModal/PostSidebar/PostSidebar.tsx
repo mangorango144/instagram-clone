@@ -40,7 +40,7 @@ export function PostSidebar({
           setAuthUserFollowings={setAuthUserFollowings}
           currentUserPage={currentUserPage}
           fetchFollowersAndFollowing={fetchFollowersAndFollowing}
-          postUid={post.uid}
+          post={post}
         />
         <AddCommentForm textareaRef={textareaRef} />
       </div>

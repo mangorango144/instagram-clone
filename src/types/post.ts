@@ -2,7 +2,7 @@ import { Timestamp } from "firebase/firestore";
 import { FirestoreUser } from "./user";
 
 export interface PostType {
-  id: string;
+  postId: string;
   uid: string;
   caption: string;
   imageUrl: string;

@@ -10,6 +10,7 @@ import { CiCamera } from "react-icons/ci";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 import {
+  fetchSavedPostsForUser,
   fetchUserPosts,
   followUser,
   getFollowers,
@@ -56,6 +57,9 @@ export function UserPage() {
   >(new Map());
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
   const [userPosts, setUserPosts] = useState<PostType[]>([]);
+  const [savedPosts, setSavedPosts] = useState<PostType[]>([]);
+
+  const contentToShow = isSaved ? savedPosts : userPosts;
 
   const fetchFollowersAndFollowing = async (uid: string) => {
     const [followerUsers, followingUsers] = await Promise.all([
@@ -115,6 +119,21 @@ export function UserPage() {
 
     fetchUser();
   }, [username]);
+
+  useEffect(() => {
+    const fetchSavedPosts = async () => {
+      if (isSaved && isOwnProfile && authUserId) {
+        try {
+          const saved = await fetchSavedPostsForUser(authUserId);
+          setSavedPosts(saved);
+        } catch (error) {
+          console.error("Failed to fetch saved posts:", error);
+        }
+      }
+    };
+
+    fetchSavedPosts();
+  }, [isSaved, isOwnProfile, authUserId]);
 
   const handleFollowToggle = async () => {
     if (!authUserId || !user) return;
@@ -302,15 +321,17 @@ export function UserPage() {
       </div>
 
       {/* Posts Section */}
-      {userPosts.length ? (
+      {contentToShow.length ? (
         <div className="gap-[3px] md:gap-[5px] grid grid-cols-3">
-          {userPosts.map((post, index) => (
+          {contentToShow.map((post, index) => (
             <div
               className="hover:opacity-30 aspect-square overflow-hidden hover:cursor-pointer"
               key={index}
               onClick={async () => {
-                const fetchedPosts = await fetchUserPosts(user.uid); // fetch posts again to ensure latest data
-                setUserPosts(fetchedPosts); // update posts
+                if (!isSaved) {
+                  const fetchedPosts = await fetchUserPosts(user.uid); // fetch posts again to ensure latest data
+                  setUserPosts(fetchedPosts); // update posts
+                }
                 setCurrentPostIndex(index); // set which post is clicked
                 setIsPostModalActive(true); // open modal
               }}
@@ -348,7 +369,7 @@ export function UserPage() {
 
       {isPostModalActive && (
         <PostModal
-          posts={userPosts}
+          posts={isSaved ? savedPosts : userPosts}
           username={user.username}
           currentIndex={currentPostIndex}
           authUserFollowings={authUserFollowings}

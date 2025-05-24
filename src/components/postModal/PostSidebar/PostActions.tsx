@@ -3,13 +3,20 @@ import {
   FaRegHeart,
   FaRegComment,
   FaRegBookmark,
+  FaBookmark,
 } from "react-icons/fa";
 import { FiSend } from "react-icons/fi";
-import { Timestamp } from "firebase/firestore";
+import {
+  addDoc,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+  Timestamp,
+} from "firebase/firestore";
 import { formatDistanceToNow } from "date-fns";
 import { UserListModal } from "../../UserListModal";
-import { useState } from "react";
-import { FirestoreUser } from "../../../types";
+import { useEffect, useState } from "react";
+import { FirestoreUser, PostType } from "../../../types";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import {
@@ -32,7 +39,7 @@ type PostActionsProps = {
   setAuthUserFollowings: (followings: Map<string, FirestoreUser>) => void;
   currentUserPage: FirestoreUser;
   fetchFollowersAndFollowing: (uid: string) => Promise<void>;
-  postUid: string;
+  post: PostType;
 };
 
 export function PostActions({
@@ -43,10 +50,11 @@ export function PostActions({
   setAuthUserFollowings,
   currentUserPage,
   fetchFollowersAndFollowing,
-  postUid,
+  post,
 }: PostActionsProps) {
   const [likesModalOpen, setLikesModalOpen] = useState(false);
   const [localLikes, setLocalLikes] = useState<FirestoreUser[]>(likes);
+  const [isSaved, setIsSaved] = useState(false);
 
   const authUser = useSelector((state: RootState) => state.auth);
 
@@ -60,11 +68,11 @@ export function PostActions({
   const handleLikeToggle = async () => {
     try {
       const postsRef = collection(db, "posts");
-      const q = query(postsRef, where("uid", "==", postUid));
+      const q = query(postsRef, where("uid", "==", post.postId));
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
-        console.warn("No post found with uid:", postUid);
+        console.warn("No post found with uid:", post.postId);
         return;
       }
 
@@ -96,6 +104,54 @@ export function PostActions({
     }
   };
 
+  const handleSavePost = async () => {
+    try {
+      const savedPostsRef = collection(db, "savedPosts");
+      const q = query(
+        savedPostsRef,
+        where("userId", "==", authUser.uid),
+        where("postId", "==", post.postId)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        // If post is not saved yet, add it
+        await addDoc(savedPostsRef, {
+          userId: authUser.uid,
+          postId: post.postId,
+          savedAt: serverTimestamp(),
+        });
+        setIsSaved(true);
+        console.log("Post saved!");
+      } else {
+        // If post is already saved, remove it
+        const docId = querySnapshot.docs[0].id;
+        await deleteDoc(doc(db, "savedPosts", docId));
+        setIsSaved(false);
+        console.log("Post unsaved!");
+      }
+    } catch (error) {
+      console.error("Error saving/removing post:", error);
+    }
+  };
+
+  useEffect(() => {
+    const checkIfSaved = async () => {
+      const savedPostsRef = collection(db, "savedPosts");
+      const q = query(
+        savedPostsRef,
+        where("userId", "==", authUser.uid),
+        where("postId", "==", post.postId)
+      );
+
+      const querySnapshot = await getDocs(q);
+      setIsSaved(!querySnapshot.empty);
+    };
+
+    checkIfSaved();
+  }, [authUser.uid, post.postId]);
+
   return (
     <div className="flex flex-col">
       <div className="flex justify-start items-center text-[24px] text-white">
@@ -110,12 +166,25 @@ export function PostActions({
             onClick={handleLikeToggle}
           />
         )}
+
         <FaRegComment
           className="mx-5 hover:cursor-pointer"
           onClick={onCommentClick}
         />
+
         <FiSend className="hover:cursor-pointer" />
-        <FaRegBookmark className="ml-auto hover:cursor-pointer" />
+
+        {isSaved ? (
+          <FaBookmark
+            className="ml-auto hover:cursor-pointer"
+            onClick={handleSavePost}
+          />
+        ) : (
+          <FaRegBookmark
+            className="ml-auto hover:cursor-pointer"
+            onClick={handleSavePost}
+          />
+        )}
       </div>
 
       <span

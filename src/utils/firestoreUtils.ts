@@ -179,6 +179,7 @@ export async function fetchUserPosts(userId: string): Promise<PostType[]> {
   return postsSnapshot.docs.map((doc) => {
     const data = doc.data();
     return {
+      postId: data.postId,
       uid: data.uid,
       caption: data.caption,
       imageUrl: data.imageUrl,
@@ -188,3 +189,45 @@ export async function fetchUserPosts(userId: string): Promise<PostType[]> {
     };
   }) as PostType[];
 }
+
+export const fetchSavedPostsForUser = async (
+  userId: string
+): Promise<PostType[]> => {
+  try {
+    // Step 1: Get all savedPosts for the user
+    const savedQuery = query(
+      collection(db, "savedPosts"),
+      where("userId", "==", userId)
+    );
+    const savedSnapshot = await getDocs(savedQuery);
+
+    if (savedSnapshot.empty) return [];
+
+    const postIds = savedSnapshot.docs.map(
+      (doc) => doc.data().postId as string
+    );
+
+    // Step 2: Fetch posts by document ID in parallel
+    const postPromises = postIds.map(async (postId) => {
+      const postRef = doc(db, "posts", postId);
+      const postSnap = await getDoc(postRef);
+
+      if (postSnap.exists()) {
+        return { ...(postSnap.data() as PostType), postId: postSnap.id };
+      }
+      return null;
+    });
+
+    const fetchedPosts = (await Promise.all(postPromises)).filter(
+      Boolean
+    ) as PostType[];
+
+    // Step 3: Sort by createdAt descending
+    fetchedPosts.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
+
+    return fetchedPosts;
+  } catch (error) {
+    console.error("Error fetching saved posts:", error);
+    return [];
+  }
+};

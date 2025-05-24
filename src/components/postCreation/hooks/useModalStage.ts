@@ -1,4 +1,4 @@
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { collection, doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../../config";
 import { filters, ModalStage } from "../constants";
@@ -62,14 +62,18 @@ export function useModalStage({
       // 2. Upload to Firebase Storage
       const fileName = `${uuidv4()}.jpg`;
       const storageRef = ref(storage, `posts/${auth.uid}/${fileName}`);
-
       await uploadBytes(storageRef, croppedBlob);
 
       // 3. Get public URL
       const downloadURL = await getDownloadURL(storageRef);
 
-      // 4. Store metadata in Firestore (just the cropped version)
-      await addDoc(collection(db, "posts"), {
+      // 4. Create a new document reference to get the ID ahead of time
+      const postRef = doc(collection(db, "posts"));
+      const postId = postRef.id;
+
+      // 5. Store metadata in Firestore (just the cropped version of the image)
+      await setDoc(postRef, {
+        postId: postId,
         uid: auth.uid,
         imageUrl: downloadURL,
         createdAt: serverTimestamp(),
