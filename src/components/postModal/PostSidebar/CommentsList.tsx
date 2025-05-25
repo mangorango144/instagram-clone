@@ -16,6 +16,7 @@ export function CommentsList({
 }) {
   const authUser = useSelector((state: RootState) => state.auth);
   const [comments, setComments] = useState<CommentType[]>(initialComments);
+  const [loading, setLoading] = useState(true);
 
   const hasUserLiked = (comment: CommentType) => {
     return comment.likes.some((user) => user.username === authUser.username);
@@ -80,9 +81,43 @@ export function CommentsList({
     }
   };
 
+  // Fetch comments from Firestore on mount or when postId changes
   useEffect(() => {
-    setComments(initialComments);
-  }, [initialComments]);
+    async function fetchComments() {
+      setLoading(true);
+      try {
+        const postRef = doc(db, "posts", postId);
+        const postSnap = await getDoc(postRef);
+        if (!postSnap.exists()) {
+          setComments([]);
+          setLoading(false);
+          return;
+        }
+        const postData = postSnap.data();
+        setComments(postData.comments || []);
+      } catch (err) {
+        console.error("Failed to fetch comments:", err);
+        setComments([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchComments();
+  }, [postId]);
+
+  // useEffect(() => {
+  //   setComments(initialComments);
+  // }, [initialComments]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center mt-9">
+        {/* Simple spinner */}
+        <div className="border-4 border-white border-t-transparent rounded-full w-8 h-8 animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-7 mt-9 text-sm">

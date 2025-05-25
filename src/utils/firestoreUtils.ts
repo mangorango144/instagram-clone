@@ -222,8 +222,8 @@ export const fetchSavedPostsForUser = async (
       Boolean
     ) as PostType[];
 
-    // Step 3: Sort by createdAt descending
-    fetchedPosts.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
+    // Step 3: Sort by createdAt ascending
+    fetchedPosts.sort((a, b) => a.createdAt.seconds - b.createdAt.seconds);
 
     return fetchedPosts;
   } catch (error) {
