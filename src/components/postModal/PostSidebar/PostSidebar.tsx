@@ -7,7 +7,6 @@ import { PosterInfo } from "./PosterInfo";
 import { FirestoreUser, PostType } from "../../../types";
 
 interface PostSidebarProps {
-  username: string;
   post: PostType;
   authUserFollowings: Map<string, FirestoreUser>;
   setAuthUserFollowings: (followings: Map<string, FirestoreUser>) => void;
@@ -16,7 +15,6 @@ interface PostSidebarProps {
 }
 
 export function PostSidebar({
-  username,
   post,
   authUserFollowings,
   setAuthUserFollowings,
@@ -28,7 +26,12 @@ export function PostSidebar({
   return (
     <div className="flex flex-col w-full lg:w-[350px] h-auto lg:h-[700px] text-white">
       {/* Top: Poster Info */}
-      <PosterInfo post={post} />
+      <PosterInfo
+        post={post}
+        authUserFollowings={authUserFollowings}
+        setAuthUserFollowings={setAuthUserFollowings}
+        fetchFollowersAndFollowing={fetchFollowersAndFollowing}
+      />
 
       {/* Actions + Comment Form come first on small screens, last on lg */}
       <div className="flex flex-col space-y-3 order-1 lg:order-3 px-4 py-3 border-white/10 border-t">

@@ -76,7 +76,6 @@ export function PostModal({
       >
         <PostImage imageUrl={posts[currentIndex].imageUrl} />
         <PostSidebar
-          username={username}
           post={posts[currentIndex]}
           authUserFollowings={authUserFollowings}
           setAuthUserFollowings={setAuthUserFollowings}
