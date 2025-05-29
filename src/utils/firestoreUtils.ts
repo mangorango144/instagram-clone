@@ -186,6 +186,7 @@ export async function fetchUserPosts(userId: string): Promise<PostType[]> {
       createdAt: data.createdAt,
       likes: data.likes,
       comments: data.comments,
+      pfpUrl: data.pfpUrl,
     };
   }) as PostType[];
 }

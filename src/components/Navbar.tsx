@@ -34,6 +34,7 @@ const iconClassName = "xl:mr-4 text-2xl";
 
 export function Navbar() {
   const username = useSelector((state: RootState) => state.auth.username);
+  const pfpUrl = useSelector((state: RootState) => state.auth.pfpUrl);
 
   const location = useLocation();
   const segments = location.pathname.split("/");
@@ -76,9 +77,12 @@ export function Navbar() {
     {
       label: "Profile",
       icon: (
-        <div
-          className={`bg-stone-500 xl:mr-4 rounded-full w-6 h-6 
-            ${isOwnProfile ? "outline-2" : ""}`}
+        <img
+          src={pfpUrl || "/assets/blank_pfp.png"} // fallback if pfpUrl is null/undefined
+          alt="Profile"
+          className={`object-cover rounded-full size-6 xl:mr-4 ${
+            isOwnProfile ? "outline-2 outline-gray-300" : ""
+          }`}
         />
       ),
       to: `/${username}`,

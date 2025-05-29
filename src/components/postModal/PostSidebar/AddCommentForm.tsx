@@ -42,7 +42,7 @@ export function AddCommentForm({ textareaRef, post }: AddCommentFormProps) {
       createdAt: Timestamp.now(),
       likes: [],
       replies: [],
-      imageUrl: authUser.imageUrl || "",
+      pfpUrl: authUser.pfpUrl || "",
     };
 
     try {

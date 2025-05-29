@@ -129,7 +129,12 @@ export function SearchPanel({ onClose, toggleRef }: SearchPanelProps) {
                   onClick={onClose}
                   className="flex items-center gap-4 hover:bg-neutral-800 px-3 py-2 rounded-md"
                 >
-                  <div className="bg-stone-500 rounded-full w-10 h-10"></div>
+                  <img
+                    src={user.pfpUrl || "/assets/blank_pfp.png"}
+                    alt="Profile"
+                    className="rounded-full size-10 object-cover"
+                  />
+
                   <div className="flex flex-col">
                     <span className="font-medium text-white">
                       {user.username}

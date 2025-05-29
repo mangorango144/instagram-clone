@@ -30,6 +30,7 @@ export function UserPage() {
   // Redux
   const authUserName = useSelector((state: RootState) => state.auth.username);
   const authUserId = useSelector((state: RootState) => state.auth.uid);
+  const pfpUrl = useSelector((state: RootState) => state.auth.pfpUrl);
 
   // Route flags
   const isOwnProfile = location.pathname.split("/")[1] === authUserName;
@@ -161,14 +162,21 @@ export function UserPage() {
       {/* Desktop Layout */}
       <div className="hidden md:grid grid-cols-[200px_auto] lg:grid-cols-[284px_auto] h-[195px]">
         <div className="flex justify-center items-center row-span-4">
-          <div className="bg-stone-500 rounded-full w-[150px] h-[150px]"></div>
+          <img
+            src={pfpUrl || "/assets/blank_pfp.png"}
+            alt="Profile_picture"
+            className="rounded-full size-[150px] object-cover"
+          />
         </div>
 
         <div className="flex items-center">
           <p className="mr-5 text-white text-xl">{user.username}</p>
           {isOwnProfile ? (
             <>
-              <button className="bg-neutral-700 hover:bg-neutral-800 px-5 py-1.5 rounded-lg font-medium text-white text-sm hover:cursor-pointer">
+              <button
+                className="bg-neutral-700 hover:bg-neutral-800 px-5 py-1.5 rounded-lg font-medium text-white text-sm hover:cursor-pointer"
+                onClick={() => navigate("/accounts/edit")}
+              >
                 Edit profile
               </button>
               <button className="bg-neutral-700 hover:bg-neutral-800 ml-2 px-5 py-1.5 rounded-lg font-medium text-white text-sm hover:cursor-pointer">
@@ -216,14 +224,19 @@ export function UserPage() {
 
         <div className="flex flex-col mt-2">
           <p className="font-medium text-white text-sm">{user.fullName}</p>
-          <p className="text-white text-sm">Email: {user.email}</p>
+          <p className="text-white text-sm">{user.bio}</p>
         </div>
       </div>
 
       {/* Mobile Layout */}
       <div className="md:hidden flex flex-col mt-8">
         <div className="flex gap-6 px-4 w-full">
-          <div className="bg-stone-500 rounded-full w-[77px] h-[77px]"></div>
+          <img
+            src={pfpUrl || "/assets/blank_pfp.png"}
+            alt="Profile"
+            className="bg-stone-500 rounded-full size-[77px] object-cover"
+          />
+
           <div className="flex flex-col justify-center">
             <div className="flex items-center">
               <p className="text-white text-xl">{user.username}</p>
@@ -232,7 +245,10 @@ export function UserPage() {
 
             {isOwnProfile ? (
               <div className="flex gap-2">
-                <button className="bg-neutral-700 hover:bg-neutral-800 mt-2 px-4 py-1.5 rounded-lg font-medium text-white text-sm hover:cursor-pointer">
+                <button
+                  className="bg-neutral-700 hover:bg-neutral-800 mt-2 px-4 py-1.5 rounded-lg font-medium text-white text-sm hover:cursor-pointer"
+                  onClick={() => navigate("/accounts/edit")}
+                >
                   Edit Profile
                 </button>
                 <button className="bg-neutral-700 hover:bg-neutral-800 mt-2 px-4 py-1.5 rounded-lg font-medium text-white text-sm hover:cursor-pointer">

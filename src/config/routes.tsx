@@ -1,4 +1,4 @@
-import { HomePage, Login, SignUp, UserPage } from "../pages";
+import { EditPage, HomePage, Login, SignUp, UserPage } from "../pages";
 import { AuthGuard, Layout } from "../components";
 
 export const routesConfig = [
@@ -26,6 +26,9 @@ export const routesConfig = [
         <Layout />
       </AuthGuard>
     ),
-    children: [{ index: true, element: <HomePage /> }],
+    children: [
+      { index: true, element: <HomePage /> },
+      { path: "accounts/edit", element: <EditPage /> },
+    ],
   },
 ];

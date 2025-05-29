@@ -1,5 +1,5 @@
 import { GoHeart, GoHeartFill } from "react-icons/go";
-import { CommentType } from "../../../types";
+import { CommentType, PostType } from "../../../types";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
@@ -9,10 +9,10 @@ import { db } from "../../../config";
 
 export function CommentsList({
   comments: initialComments,
-  postId,
+  post,
 }: {
   comments: CommentType[];
-  postId: string;
+  post: PostType;
 }) {
   const authUser = useSelector((state: RootState) => state.auth);
   const [comments, setComments] = useState<CommentType[]>(initialComments);
@@ -46,7 +46,7 @@ export function CommentsList({
       );
 
       // Fetch latest post document
-      const postRef = doc(db, "posts", postId);
+      const postRef = doc(db, "posts", post.postId);
       const postSnap = await getDoc(postRef);
       if (!postSnap.exists()) return;
 
@@ -81,12 +81,12 @@ export function CommentsList({
     }
   };
 
-  // Fetch comments from Firestore on mount or when postId changes
+  // Fetch comments from Firestore on mount or when post changes
   useEffect(() => {
     async function fetchComments() {
       setLoading(true);
       try {
-        const postRef = doc(db, "posts", postId);
+        const postRef = doc(db, "posts", post.postId);
         const postSnap = await getDoc(postRef);
         if (!postSnap.exists()) {
           setComments([]);
@@ -104,7 +104,7 @@ export function CommentsList({
     }
 
     fetchComments();
-  }, [postId]);
+  }, [post]);
 
   // useEffect(() => {
   //   setComments(initialComments);
@@ -123,7 +123,11 @@ export function CommentsList({
     <div className="space-y-7 mt-9 text-sm">
       {comments.map((comment, index) => (
         <div key={index} className="flex justify-start items-center">
-          <div className="bg-stone-500 mb-auto rounded-full min-w-9 size-9"></div>
+          <img
+            src={post.pfpUrl || "/assets/blank_pfp.png"}
+            alt="Profile"
+            className="mb-auto rounded-full min-w-9 size-9 object-cover"
+          />
 
           <div className="flex flex-col ml-3">
             <p className="text-white break-all whitespace-pre-wrap">

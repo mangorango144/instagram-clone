@@ -6,16 +6,9 @@ import { useSelector } from "react-redux";
 interface PosterInfoProps {
   post: PostType;
   authUserFollowings: Map<string, FirestoreUser>;
-  setAuthUserFollowings: (followings: Map<string, FirestoreUser>) => void;
-  fetchFollowersAndFollowing: (uid: string) => Promise<void>;
 }
 
-export function PosterInfo({
-  post,
-  authUserFollowings,
-  setAuthUserFollowings,
-  fetchFollowersAndFollowing,
-}: PosterInfoProps) {
+export function PosterInfo({ post, authUserFollowings }: PosterInfoProps) {
   const [username, setUsername] = useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
 
@@ -36,29 +29,10 @@ export function PosterInfo({
         await followUser(auth.uid, post.uid);
         setIsFollowing(true);
       }
-      // await fetchFollowersAndFollowing(post.uid);
     } catch (error) {
       console.error("Failed to toggle follow:", error);
     }
   };
-
-  // const handleFollowToggle = async () => {
-  //   if (!authUserId || !user) return;
-
-  //   try {
-  //     if (isFollowing) {
-  //       await unfollowUser(authUserId, user.uid);
-  //       setIsFollowing(false);
-  //     } else {
-  //       await followUser(authUserId, user.uid);
-  //       setIsFollowing(true);
-  //     }
-
-  //     await fetchFollowersAndFollowing(user.uid);
-  //   } catch (error) {
-  //     console.error("Failed to toggle follow:", error);
-  //   }
-  // };
 
   useEffect(() => {
     async function fetchUsername() {
@@ -80,7 +54,12 @@ export function PosterInfo({
 
   return (
     <div className="flex items-center px-4 py-3 lg:border-white/10 lg:border-b">
-      <div className="bg-stone-500 rounded-full size-9"></div>
+      <img
+        src={post.pfpUrl || "/assets/blank_pfp.png"}
+        alt="Profile"
+        className="rounded-full size-9 object-cover"
+      />
+
       <span className="ml-3 font-semibold text-sm">{username}</span>
       {post.uid !== auth.uid && (
         <>

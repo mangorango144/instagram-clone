@@ -119,6 +119,8 @@ export function SignUp() {
           email: user.email,
           createdAt: new Date(),
           searchKeywords,
+          bio: "",
+          pfpUrl: "",
         });
       }
     } catch (err: any) {

@@ -10,4 +10,5 @@ export interface PostType {
   createdAt: Timestamp;
   likes: FirestoreUser[];
   comments: CommentType[];
+  pfpUrl: string;
 }

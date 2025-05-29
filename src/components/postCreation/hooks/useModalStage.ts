@@ -80,6 +80,7 @@ export function useModalStage({
         caption: caption,
         likes: [],
         comments: [],
+        pfpUrl: auth.pfpUrl,
       });
 
       console.log("Post uploaded successfully!");

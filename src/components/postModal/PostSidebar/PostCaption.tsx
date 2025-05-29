@@ -11,7 +11,7 @@ export function PostCaption({ post }: { post: PostType }) {
       setUsername(name ?? null);
     }
     fetchUsername();
-  }, [post.uid]);
+  }, [post]);
 
   if (!username) {
     return (
@@ -25,7 +25,12 @@ export function PostCaption({ post }: { post: PostType }) {
 
   return (
     <div className="flex items-start gap-3 text-sm">
-      <div className="flex-shrink-0 bg-stone-500 rounded-full size-9"></div>
+      <img
+        src={post.pfpUrl || "/assets/blank_pfp.png"}
+        alt="Profile"
+        className="mb-auto rounded-full min-w-9 size-9 object-cover"
+      />
+
       <p className="text-white/87">
         <span className="mr-1 font-semibold text-white">{username}</span>{" "}
         {post.caption}

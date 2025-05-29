@@ -14,14 +14,26 @@ const userSlice = createSlice({
     setAuthUser: (state, action: PayloadAction<AuthUser>) => {
       state.uid = action.payload.uid;
       state.username = action.payload.username;
-      console.log("setAuthUser() " + state.uid + " " + state.username);
+
+      if ("fullName" in action.payload) {
+        state.fullName = action.payload.fullName;
+      }
+
+      if ("bio" in action.payload) {
+        state.bio = action.payload.bio;
+      }
+
+      if ("pfpUrl" in action.payload) {
+        state.pfpUrl = action.payload.pfpUrl;
+      }
     },
     logOutAuth: (state) => {
-      console.log("logOutAuth() start " + state.uid + " " + state.username);
       state.uid = undefined;
       state.username = undefined;
+      state.fullName = undefined;
+      state.bio = undefined;
+      state.pfpUrl = undefined;
       storage.removeItem("persist:auth");
-      console.log("logOutAuth() end " + state.uid + " " + state.username);
     },
   },
 });
