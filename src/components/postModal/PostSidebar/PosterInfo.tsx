@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FirestoreUser, PostType } from "../../../types";
 import { followUser, getUsernameByUid, unfollowUser } from "../../../utils";
 import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 
 interface PosterInfoProps {
   post: PostType;
@@ -54,13 +55,14 @@ export function PosterInfo({ post, authUserFollowings }: PosterInfoProps) {
 
   return (
     <div className="flex items-center px-4 py-3 lg:border-white/10 lg:border-b">
-      <img
-        src={post.pfpUrl || "/assets/blank_pfp.png"}
-        alt="Profile"
-        className="rounded-full size-9 object-cover"
-      />
-
-      <span className="ml-3 font-semibold text-sm">{username}</span>
+      <Link to={`/${username}`} className="flex items-center">
+        <img
+          src={post.pfpUrl || "/assets/blank_pfp.png"}
+          alt="Profile"
+          className="rounded-full size-9 object-cover"
+        />
+        <span className="ml-3 font-semibold text-sm">{username}</span>
+      </Link>
       {post.uid !== auth.uid && (
         <>
           <div className="bg-white/80 mx-2.5 rounded-full size-[5px]"></div>

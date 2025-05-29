@@ -6,6 +6,7 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { getUserByUid } from "../../../utils";
 import { db } from "../../../config";
+import { Link } from "react-router-dom";
 
 export function CommentsList({
   comments: initialComments,
@@ -123,15 +124,19 @@ export function CommentsList({
     <div className="space-y-7 mt-9 text-sm">
       {comments.map((comment, index) => (
         <div key={index} className="flex justify-start items-center">
-          <img
-            src={post.pfpUrl || "/assets/blank_pfp.png"}
-            alt="Profile"
-            className="mb-auto rounded-full min-w-9 size-9 object-cover"
-          />
+          <Link to={`/${comment.username}`}>
+            <img
+              src={comment.pfpUrl || "/assets/blank_pfp.png"}
+              alt="Profile"
+              className="mb-auto rounded-full min-w-9 size-9 object-cover"
+            />
+          </Link>
 
           <div className="flex flex-col ml-3">
             <p className="text-white break-all whitespace-pre-wrap">
-              <span className="font-semibold">{comment.username}</span>{" "}
+              <Link to={`/${comment.username}`} className="font-semibold">
+                {comment.username}
+              </Link>{" "}
               <span className="text-white/87">{comment.text}</span>
             </p>
             <div className="flex space-x-3 mt-1 font-medium text-stone-400 text-xs">

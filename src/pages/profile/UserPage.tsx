@@ -30,7 +30,6 @@ export function UserPage() {
   // Redux
   const authUserName = useSelector((state: RootState) => state.auth.username);
   const authUserId = useSelector((state: RootState) => state.auth.uid);
-  const pfpUrl = useSelector((state: RootState) => state.auth.pfpUrl);
 
   // Route flags
   const isOwnProfile = location.pathname.split("/")[1] === authUserName;
@@ -163,7 +162,7 @@ export function UserPage() {
       <div className="hidden md:grid grid-cols-[200px_auto] lg:grid-cols-[284px_auto] h-[195px]">
         <div className="flex justify-center items-center row-span-4">
           <img
-            src={pfpUrl || "/assets/blank_pfp.png"}
+            src={user.pfpUrl || "/assets/blank_pfp.png"}
             alt="Profile_picture"
             className="rounded-full size-[150px] object-cover"
           />
@@ -232,7 +231,7 @@ export function UserPage() {
       <div className="md:hidden flex flex-col mt-8">
         <div className="flex gap-6 px-4 w-full">
           <img
-            src={pfpUrl || "/assets/blank_pfp.png"}
+            src={user.pfpUrl || "/assets/blank_pfp.png"}
             alt="Profile"
             className="bg-stone-500 rounded-full size-[77px] object-cover"
           />

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { PostType } from "../../../types";
 import { getUsernameByUid } from "../../../utils";
+import { Link } from "react-router-dom";
 
 export function PostCaption({ post }: { post: PostType }) {
   const [username, setUsername] = useState<string | null>(null);
@@ -25,14 +26,17 @@ export function PostCaption({ post }: { post: PostType }) {
 
   return (
     <div className="flex items-start gap-3 text-sm">
-      <img
-        src={post.pfpUrl || "/assets/blank_pfp.png"}
-        alt="Profile"
-        className="mb-auto rounded-full min-w-9 size-9 object-cover"
-      />
-
+      <Link to={`/${username}`}>
+        <img
+          src={post.pfpUrl || "/assets/blank_pfp.png"}
+          alt="Profile"
+          className="mb-auto rounded-full min-w-9 size-9 object-cover"
+        />
+      </Link>
       <p className="text-white/87">
-        <span className="mr-1 font-semibold text-white">{username}</span>{" "}
+        <Link to={`/${username}`} className="mr-1 font-semibold text-white">
+          {username}
+        </Link>{" "}
         {post.caption}
       </p>
     </div>

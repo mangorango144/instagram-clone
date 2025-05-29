@@ -15,7 +15,7 @@ export interface CommentType {
   username: string;
   text: string;
   createdAt: Timestamp;
+  pfpUrl: string;
   likes: FirestoreUser[];
   replies: ReplyType[];
-  imageUrl: string;
 }
