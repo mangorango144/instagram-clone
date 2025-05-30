@@ -12,7 +12,6 @@ import {
 
 interface PostModalProps {
   posts: PostType[];
-  username: string;
   currentIndex: number;
   authUserFollowings: Map<string, FirestoreUser>;
   setAuthUserFollowings: (followings: Map<string, FirestoreUser>) => void;
@@ -24,7 +23,6 @@ interface PostModalProps {
 
 export function PostModal({
   posts,
-  username,
   currentIndex,
   authUserFollowings,
   setAuthUserFollowings,

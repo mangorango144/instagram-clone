@@ -1,9 +1,10 @@
 import { arrayUnion, doc, Timestamp, updateDoc } from "firebase/firestore";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { GoSmiley } from "react-icons/go";
 import { db } from "../../../config";
 import { useSelector } from "react-redux";
 import { PostType } from "../../../types";
+import { emojiList } from "../../../utils";
 
 interface AddCommentFormProps {
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
@@ -12,7 +13,11 @@ interface AddCommentFormProps {
 
 export function AddCommentForm({ textareaRef, post }: AddCommentFormProps) {
   const [text, setText] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
   const authUser = useSelector((state: any) => state.auth);
+
+  const emojiBtnRef = useRef<HTMLDivElement>(null);
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -60,9 +65,34 @@ export function AddCommentForm({ textareaRef, post }: AddCommentFormProps) {
     }
   };
 
+  const addEmoji = (emoji: string) => {
+    setText((prev) => prev + emoji);
+    setShowEmojiPicker(false);
+    textareaRef.current?.focus();
+  };
+
   return (
     <form onSubmit={handleSubmit} className="flex items-center space-x-4">
-      <GoSmiley className="text-[30px] text-white hover:cursor-pointer" />
+      <div className="relative" ref={emojiBtnRef}>
+        <GoSmiley
+          className="text-[30px] text-white hover:cursor-pointer"
+          onClick={() => setShowEmojiPicker((prev) => !prev)}
+        />
+        {showEmojiPicker && (
+          <div className="bottom-full left-0 z-50 absolute gap-2 grid grid-cols-6 bg-stone-800 mb-2 p-2 rounded-xl min-w-60">
+            {emojiList.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                className="md:text-xl hover:scale-130 transition hover:cursor-pointer"
+                onClick={() => addEmoji(emoji)}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       <textarea
         ref={textareaRef}

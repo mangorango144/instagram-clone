@@ -385,7 +385,6 @@ export function UserPage() {
       {isPostModalActive && (
         <PostModal
           posts={isSaved ? savedPosts : userPosts}
-          username={user.username}
           currentIndex={currentPostIndex}
           authUserFollowings={authUserFollowings}
           setAuthUserFollowings={setAuthUserFollowings}
