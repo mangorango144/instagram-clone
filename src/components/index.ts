@@ -7,3 +7,4 @@ export { CreatePanel } from "./CreatePanel";
 export { UserListModal } from "./UserListModal";
 export { PostModal } from "./postModal";
 export { CloseButton } from "./CloseButton";
+export { Stories } from "./stories";
