@@ -1,5 +1,4 @@
 import { ModalStage } from "../constants";
-import { Modal } from "../layout/components";
 
 export function usePostModalClosing({
   mediaFile,

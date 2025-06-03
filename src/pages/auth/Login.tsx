@@ -4,7 +4,7 @@ import { FaGoogle } from "react-icons/fa";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, setAuthUser } from "../../store";
-import { getUserByUid, getUsernameByUid } from "../../utils";
+import { getUserByUid } from "../../utils";
 
 export function Login() {
   // State for handling form fields and validation
