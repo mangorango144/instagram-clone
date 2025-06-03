@@ -7,6 +7,7 @@ An Instagram clone built with:
 - 🎨 **TailwindCSS**
 - 🧠 **Redux Toolkit**
 - 🌐 **React Router**
+- 🔥 **Firebase** (Auth, Firestore, Storage)
 - 🖼️ HTML5 **Canvas** for image uploads
 
 ---
