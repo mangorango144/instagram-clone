@@ -8,3 +8,4 @@ export { UserListModal } from "./UserListModal";
 export { PostModal } from "./postModal";
 export { CloseButton } from "./CloseButton";
 export { Stories } from "./stories";
+export { Posts } from "./posts";
