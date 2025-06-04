@@ -43,6 +43,25 @@ export function Login() {
     }
   };
 
+  const handleGuestLogin = async () => {
+    const userCredential = await signIn("adminexample", "123456q");
+    if (userCredential) {
+      const uid = userCredential.user.uid;
+      const user = await getUserByUid(uid);
+      dispatch(
+        setAuthUser({
+          uid,
+          username: user?.username,
+          pfpUrl: user?.pfpUrl,
+        })
+      );
+      navigate("/");
+      console.log("Guest login successful");
+    } else {
+      setError("Guest login failed.");
+    }
+  };
+
   if (auth.uid) {
     return <Navigate to="/" replace state={{ from: location }} />;
   }
@@ -112,6 +131,13 @@ export function Login() {
           className="flex justify-center items-center bg-sky-500 hover:bg-sky-600 mt-4 py-1 rounded-lg w-full font-medium text-white hover:cursor-pointer"
         >
           <FaGoogle className="mr-1" /> Log in with Google
+        </button>
+
+        <button
+          onClick={handleGuestLogin}
+          className="flex justify-center items-center bg-green-600 hover:bg-green-700 mt-2 py-1 rounded-lg w-full font-medium text-white hover:cursor-pointer"
+        >
+          Continue as Guest
         </button>
 
         {error && (

@@ -4,10 +4,10 @@ import { RxCrossCircled } from "react-icons/rx";
 import { useAuth } from "../../hooks";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../../config/firebase";
-import { useSelector } from "react-redux";
-import { RootState } from "../../store";
-import { Link, Navigate, useLocation } from "react-router-dom";
-import { generateSearchKeywords } from "../../utils";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, setAuthUser } from "../../store";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { generateSearchKeywords, getUserByUid } from "../../utils";
 
 interface FormState {
   email: string;
@@ -36,9 +36,11 @@ const initializeValidationState = () => ({
 });
 
 export function SignUp() {
-  const { signUp, signInWithGoogle } = useAuth();
+  const { signUp, signInWithGoogle, signIn } = useAuth();
   const auth = useSelector((state: RootState) => state.auth);
   const location = useLocation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
@@ -135,6 +137,25 @@ export function SignUp() {
     }
   };
 
+  const handleGuestLogin = async () => {
+    const userCredential = await signIn("adminexample", "123456q");
+    if (userCredential) {
+      const uid = userCredential.user.uid;
+      const user = await getUserByUid(uid);
+      dispatch(
+        setAuthUser({
+          uid,
+          username: user?.username,
+          pfpUrl: user?.pfpUrl,
+        })
+      );
+      navigate("/");
+      console.log("Guest login successful");
+    } else {
+      console.log("Guest login failed.");
+    }
+  };
+
   if (auth.uid) {
     return <Navigate to="/" replace state={{ from: location }} />;
   }
@@ -155,6 +176,13 @@ export function SignUp() {
           className="flex justify-center items-center bg-sky-500 hover:bg-sky-600 mt-4 py-1 rounded-lg w-full font-medium text-white hover:cursor-pointer"
         >
           <FaGoogle className="mr-1" /> Sign in with Google
+        </button>
+
+        <button
+          onClick={handleGuestLogin}
+          className="flex justify-center items-center bg-green-600 hover:bg-green-700 mt-2 py-1 rounded-lg w-full font-medium text-white hover:cursor-pointer"
+        >
+          Continue as Guest
         </button>
 
         <div className="flex justify-center items-center mt-4 w-full">
