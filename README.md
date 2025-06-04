@@ -47,6 +47,14 @@ This project is still under active development. Expect **bugs**, **missing featu
 
 ---
 
+## 🧪 Learning by Doing — The Good *and* the Bad
+
+In this project, I intentionally explored a wide range of coding practices — both good and bad — like prop drilling, code repetition, and inconsistent state management. The goal was to **get hands-on experience** and develop a deeper understanding of *why* some approaches scale better and others cause problems in real-world apps.
+
+This helped me see the value in patterns like component abstraction, global state management with Redux, and clean file structure.
+
+---
+
 ## 👨‍💻 Motivation
 
 I'm building this to sharpen my frontend skills and showcase modern tech like React, Redux Toolkit, and Tailwind in a real-world app.
