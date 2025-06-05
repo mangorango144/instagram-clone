@@ -1,11 +1,17 @@
-import { auth, googleProvider } from "../config";
-import { getEmailFromUsername } from "../utils";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db, googleProvider } from "../config";
+import { FirestoreUser } from "../types";
+import {
+  generateSearchKeywords,
+  getEmailFromUsername,
+  getUserByUid,
+} from "../utils";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  signInWithRedirect,
   UserCredential,
+  signInWithPopup,
 } from "firebase/auth";
 
 export const useAuth = () => {
@@ -48,11 +54,50 @@ export const useAuth = () => {
     }
   };
 
-  const signInWithGoogle = async (): Promise<void> => {
+  const signInWithGoogle = async (): Promise<FirestoreUser | null> => {
     try {
-      await signInWithRedirect(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+
+      if (result?.user) {
+        const uid = result.user.uid;
+        let user = await getUserByUid(uid);
+
+        if (!user) {
+          const displayName = result.user.displayName || "user";
+          const username = displayName.toLowerCase().replace(/\s+/g, "");
+          const newUser: FirestoreUser = {
+            uid,
+            email: result.user.email || "",
+            username,
+            fullName: result.user.displayName || "",
+            pfpUrl: result.user.photoURL || "",
+          };
+
+          const searchKeywords = generateSearchKeywords(
+            result.user.displayName as string,
+            username
+          );
+
+          await setDoc(doc(db, "users", uid), {
+            fullName: result.user.displayName,
+            username,
+            email: result.user.email,
+            createdAt: new Date(),
+            searchKeywords,
+            bio: "",
+            pfpUrl: result.user.photoURL,
+          });
+
+          user = newUser;
+        }
+
+        return user;
+      }
+
+      return null;
     } catch (error: any) {
       console.error("Error signing in with Google:", error.message);
+      return null;
     }
   };
 

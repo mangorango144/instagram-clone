@@ -38,7 +38,10 @@ export const getUserByUid = async (
     const userDoc = await getDoc(userDocRef);
 
     if (userDoc.exists()) {
-      return userDoc.data() as FirestoreUser;
+      return {
+        uid: userDoc.id,
+        ...(userDoc.data() as Omit<FirestoreUser, "uid">),
+      };
     }
   } catch (error: any) {
     console.error("Error fetching user by UID:", error.message);

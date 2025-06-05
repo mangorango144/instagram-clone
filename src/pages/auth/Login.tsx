@@ -62,6 +62,23 @@ export function Login() {
     }
   };
 
+  const handleSignInWithGoogle = async () => {
+    const user = await signInWithGoogle();
+    if (user) {
+      dispatch(
+        setAuthUser({
+          uid: user.uid,
+          username: user.username,
+          pfpUrl: user.pfpUrl,
+        })
+      );
+      navigate("/");
+      console.log("Google login successful");
+    } else {
+      console.log("Google login failed.");
+    }
+  };
+
   if (auth.uid) {
     return <Navigate to="/" replace state={{ from: location }} />;
   }
@@ -127,7 +144,7 @@ export function Login() {
         </div>
 
         <button
-          onClick={signInWithGoogle}
+          onClick={handleSignInWithGoogle}
           className="flex justify-center items-center bg-sky-500 hover:bg-sky-600 mt-4 py-1 rounded-lg w-full font-medium text-white hover:cursor-pointer"
         >
           <FaGoogle className="mr-1" /> Log in with Google
